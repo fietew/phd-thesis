@@ -1,0 +1,180 @@
+% block diagram for the implementation of Near-Field-Compensated HOA
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\input{../../preamble/standalone}
+
+\begin{document}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Styles
+
+\tikzstyle{block} = [
+draw, 
+rectangle, 
+%minimum width=1.15cm, 
+minimum height=0.55cm, 
+inner sep=2pt
+]
+\tikzstyle{labelblock} = [
+rectangle, 
+%minimum width=1.15cm, 
+inner sep=0pt
+]
+\tikzstyle{op} = [draw, circle, minimum size=0.3cm, inner sep=0pt]
+\tikzstyle{branch} = [circle, fill=black, minimum size=1mm, inner sep=0pt, 
+node 
+distance = 1cm]
+\tikzstyle{connect} = [-latex, draw]
+\tikzstyle{dotted}= [dash pattern=on 0.0 mm off 1.0mm, line width 
+=0.5mm, line cap =round, shorten >= 2, shorten <=2]
+
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\xoffset}{0.20}
+\pgfmathsetmacro{\yoffset}{0.20}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes
+
+%
+\useasboundingbox (-2.4,-1.6) rectangle +(4.3cm,8.75cm);
+
+%% Central Node of IFFT
+\node[block, minimum width=3.5cm] (ifft) {%
+  \shortstack{IFFT for conjugate\\ symmetric input}};
+
+% inputs of ifft
+\foreach \idx/\ratio in {0/0.2, 1/0.5, 3/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}
+  \coordinate(ifft_in\idx) at 
+    ($\ratio*(ifft.north east) + \ratioinv*(ifft.north west)$); 
+}
+% outputs of ifft
+\foreach \idx/\ratio in {0/0.05, 1/0.325, 2/0.6, 3/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}   
+  \coordinate(ifft_out\idx) at 
+    ($\ratio*(ifft.south east) + \ratioinv*(ifft.south west)$);
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes above of IFFT
+
+% sound field coefficients
+\foreach \idx/\label in {0/0,1/1,3/M}
+{
+  % windowing
+  \node[op, above=0.5cm of ifft_in\idx] (mult_window\idx)     	
+  {\scriptsize$\times$};
+  \coordinate[left=0.35cm of mult_window\idx, 
+    label={above:{\scriptsize $\sfwindow[prefix=cht]_\label^M$}}] (window\idx);
+  
+  % contributions from other sound sources
+  \node[op, above=1.25cm of mult_window\idx, yshift=-\idx*\yoffset cm] 
+  (add\idx) 
+  {\scriptsize +};
+  
+  % complex weights
+  \node[op, above=2.0cm of mult_window\idx] (mult_weight\idx)     	
+    {\scriptsize$\times$};
+  \coordinate[left=0.35cm of mult_weight\idx, 
+    label={above:{\scriptsize $g_\label$}}] (weight\idx);
+  
+  % filters
+  \node[block, above=0.5cm of mult_weight\idx, minimum height=1.2cm] 
+    (filter\idx) 
+    {\rotatebox{90}{$\accentset{\diamond}{\sffilter[prefix=time]}_\label[n]$}};
+}
+% branching
+\node[branch, above=0.3cm of filter1] (branch1) {};  
+% delayline
+\node[block, above=0.2cm of branch1] (delayline) {delayline};
+\node[above=0.3cm of delayline] (tau) {\scriptsize $\tau$};
+% source signal
+\node[left=1cm of delayline](signal) 
+  {$\tilde{\sfvirtualsource[prefix=time]}[n]$};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes below of IFFT
+  
+\foreach \idx/\label in {0/0,1/1,2/2,3/\sfNsec}
+{
+    % loudspeakers
+  \node[loudspeaker,below=0.5cm of ifft_out\idx, anchor=west,rotate=-90] 
+  (driving\idx) {};
+  \node[below=0.2cm of driving\idx, labelblock] 
+  {\scriptsize $\sfdriving[prefix=time][\sfpossec^{(\label)}, n]$};
+  
+}
+\node[left=1.5cm of add1] (sources) {\shortstack{other\\virtual\\sources}};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Connections
+
+% signal
+\draw[connect] (signal) -- (delayline);
+% delayline
+\draw[connect] (tau) -- (delayline);
+\draw (delayline) -- (branch1);
+
+\foreach \idx in {0,1,3}
+{
+  % filters
+  \draw[connect] (branch1) -| (filter\idx);
+  \draw[connect] (filter\idx) -- (mult_weight\idx);
+  % weights
+  \draw[connect] (weight\idx) -- (mult_weight\idx);
+  % add
+  \draw[connect] (mult_weight\idx) -- (add\idx);
+  \draw[connect] ($(sources.east) + (0,1*\yoffset) + (0,-\idx*\yoffset)$) -- 
+  (add\idx);
+  % windows
+  \draw[connect] (add\idx) -- (mult_window\idx);
+  \draw[connect] (window\idx) -- (mult_window\idx);
+  \draw[connect] (mult_window\idx) -- (ifft_in\idx);
+}
+
+\foreach \idx in {0,1,2,3}
+{
+  % loudspeakers
+  \draw[connect] (ifft_out\idx) -- (driving\idx);
+}
+
+% dots
+\foreach \label in {ifft_in,add, filter}
+{
+  \path (\label 1) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+\foreach \label in {driving}
+{
+  \path (\label 2) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+
+\end{tikzpicture}
+  
+\end{document}

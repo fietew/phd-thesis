@@ -1,0 +1,40 @@
+\begin{algorithmic}[1]
+  \Function{MinMaxWavenumberCircle}{$\sfcircleh, \sfpossec$}
+  \State $\sfposh, \sfRh \gets \sfcircleh$
+  \Comment centre and radius of circle
+  \State $\varrho_{\mathrm h} \gets 
+  \nicefrac{\sfRh}{|\sfposh-\sfpossec|}$
+  \Comment \eqref{eq:derivations_circle_ratio}
+  \State $\sfknorm_{\mathrm h, \sftangentsec} \gets
+  \sfknorm_{\sfgreens,\sftangentsec}(\sfposh - 
+  \sfpossec)$
+  \Comment \eqref{eq:derivations_circle_center_tangential}
+  \If {$
+    \varrho_{\mathrm h} > 1 \,\textbf{or}
+    - \sqrt{1-\varrho_{\mathrm h}^2} > \hat \sfk_{\mathrm h, \sftangentsec}
+    $}
+  \Comment \eqref{eq:derivations_circle_kminmax_allcases}
+  \State $\sfknorm^{\min}_{\sfgreens, \sftangentsec} \gets -1$
+  \Else
+  \State $\sfknorm^{\min}_{\sfgreens, \sftangentsec} \gets 
+  \sfknorm_{\mathrm h, \sftangentsec} \sqrt{1-\varrho_{\mathrm h}^2}
+  - \varrho_{\mathrm h} \sqrt{1 - \sfknorm_{\mathrm h, \sftangentsec}^2}  
+  $
+  \Comment \eqref{eq:derivations_circle_kminmax_case1}
+  \EndIf
+  \If {$
+    \varrho_{\mathrm h} > 1 \,\textbf{or}
+    + \sqrt{1-\varrho_{\mathrm h}^2} > \hat \sfk_{\mathrm h, \sftangentsec}
+    $}
+  \Comment \eqref{eq:derivations_circle_kminmax_allcases}
+  \State $\sfknorm^{\max}_{\sfgreens, \sftangentsec} \gets +1$
+  \Else
+  \State $\sfknorm^{\max}_{\sfgreens, \sftangentsec} \gets 
+  \sfknorm_{\mathrm h, \sftangentsec} \sqrt{1-\varrho_{\mathrm h}^2}
+  + \varrho_{\mathrm h} \sqrt{1 - \sfknorm_{\mathrm h, \sftangentsec}^2} $
+  \Comment \eqref{eq:derivations_circle_kminmax_case1}
+  \EndIf
+  \State \Return $\sfknorm^{\min}_{\sfgreens, \sftangentsec},
+  \sfknorm^{\max}_{\sfgreens, \sftangentsec}$
+  \EndFunction
+\end{algorithmic}

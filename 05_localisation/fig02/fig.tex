@@ -1,0 +1,96 @@
+% binaural synthesis of loudspeaker array driven by SFS
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}
+%
+\begin{document}
+%
+\tikzstyle{active} = [fill=activecolor]%
+\tikzstyle{focus} = [draw, fill=white, circle, minimum size=2mm, inner sep=0pt]%
+\tikzstyle{source} =%
+  [draw, fill=black, circle, minimum size=2mm, inner sep=0pt]%
+\tikzstyle{driving_left} = [color=rostock-uni, thick, -latex, bend right=55]%
+\tikzstyle{driving_right} = [color=rostock-uni, thick, -latex, bend left=55]%
+\tikzstyle{hrtf_left} = [color=red!50!black, thick, bend right=60]%
+\tikzstyle{hrtf_right} = [color=red!50!black, thick, bend left=60]%
+%
+\begin{tikzpicture}
+%
+\pgfmathsetmacro{\R}{2.4}%
+\pgfmathsetmacro{\Rpw}{3}%
+\pgfmathsetmacro{\Rear}{0.25}
+\pgfmathsetmacro{\alphapw}{90}%
+\pgfmathsetmacro{\alphahead}{110}%
+\pgfmathsetmacro{\alphaear}{8}
+
+% head
+\coordinate (head) at (-0.5,-0.5);
+\node[rotate=\alphahead] (headnode) at (head)
+  {\includegraphics[scale=0.125]{head}};
+\coordinate (leftear) at ($(headnode) + (\alphahead+90+8:\Rear)$);
+\coordinate (rightear) at ($(headnode) + (\alphahead-90-8:\Rear)$);
+
+% point source
+\node[source, thick] (ps) at (\alphapw:\Rpw) {};
+% \node[above left] at (ps) {$\sfposs$};
+\draw[thick, latex-] (ps) -- +(90:0.5) node[at end, right]{$ 
+\sfvirtualsource[prefix=ft](\sfomega)$};
+
+% Driving Functions
+\foreach \phi in {20,40, ...,360} {
+  \draw node (speaker\phi) at (\phi:\R) [loudspeaker, 
+  active,rotate=\phi-180]{};
+};
+
+\foreach \phi in {100, 120, 140} {
+  \draw[driving_left] (ps) edge (speaker\phi.west);
+}
+\draw[driving_left, dashed] (ps) edge 
+  node[pos=0.175, above left] {$\sfdriving(\sfpossec, \sfomega)$} 
+  (speaker160.west);
+
+\foreach \phi in {40, 60, 80} {
+  \draw[driving_right] (ps) edge (speaker\phi.west);
+}
+\draw[driving_right, dashed] (ps) edge (speaker20.west);
+
+%% HRTFs
+\foreach \phi in {40, 60, ..., 140} {
+  \draw[hrtf_left] (speaker\phi.cone) edge (leftear);
+  \draw[hrtf_right] (speaker\phi.cone) edge (rightear);
+}
+\foreach \phi in {20,160} {
+  \draw[hrtf_left, dashed] (speaker\phi.cone) edge (leftear);
+  \draw[hrtf_right, dashed] (speaker\phi.cone) edge (rightear);
+}
+
+\node[hrtf_left, below=0.3cm of head] 
+{$\sfhrtfleftright(\sfpossec[superscript=shift],\sfomega)$};
+\end{tikzpicture}%
+%
+\end{document}

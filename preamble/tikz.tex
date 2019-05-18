@@ -1,0 +1,114 @@
+\usetikzlibrary{%  TikZ libraries
+  decorations.pathreplacing,%
+  decorations.markings,%
+  calc,%
+  arrows,%
+  through,%
+  intersections,%
+  positioning,%
+  external}
+\usepackage{audioicons}%  package for loudspeakers, microphones, etc.
+
+%%% TikZ styles
+\tikzstyle{loudspeaker} = [%  style for loudspeaker
+  basic loudspeaker, 
+  draw=black!70, 
+  fill=white, 
+  minimum height=3pt,
+  minimum width=1.5pt,
+  inner sep=0.5pt,
+  relative cone width=1.5,
+  relative cone height=2.5
+]
+
+\tikzstyle{focused} = [%  style for focused source
+  circle,
+  fill=activecolor,
+  draw=black,
+  thin,
+  inner sep=0,
+  minimum width=0.15cm
+]
+
+%%% TikZ commands
+% add labeled coordinate to position on contour
+% usage: \draw[mark coordinate (<label>) at <position>] ...
+% inputs:
+%   label     - label for coordinate
+%   position  - relative position (0.0 for start, 1.0 for end)
+\tikzset{
+  mark coordinate/.style args={(#1) at #2}{
+    postaction={
+      decorate,
+      decoration={
+        markings,
+        mark=at position #2 with {\coordinate (#1);}
+      }
+    }
+  }
+}
+% add node to position on contour
+% usage: \draw[mark node (<label>) at <position> with {<args>}] ...
+% inputs:
+%   label     - label for node
+%   position  - relative position 0.0 for start, 1.0 for end)
+%   args      - name value pairs compatible with \node[ args ]
+\tikzset{
+  mark node/.style args={(#1) at #2 with #3}{
+    postaction={
+      decorate,
+      decoration={
+        markings,
+        mark=at position #2 with {\node[#3](#1) {};}
+      }
+    }
+  }
+}
+% place loudspeaker symbols uniformly along on contour
+% usage: \draw[add loudspeakers <number>] ...
+% inputs:
+%   number    - number of loudspeakers
+\tikzset{
+  add loudspeakers/.style args={#1}{
+    postaction={
+      decorate,
+      decoration={
+        markings,
+        mark=between positions 0 and 1 step 1/#1 with {%
+          \node[loudspeaker,
+          fill=activecolor,
+          transform shape,
+          rotate=90,
+          anchor=cone] {};
+        },
+      }
+    }
+  }
+}
+
+% place focused source symbols uniformly along on contour
+% usage: \draw[add focused <number>] ...
+% inputs:
+%   number    - number of focused source
+\tikzset{
+  add focused/.style args={#1}{
+    postaction={
+      decorate,
+      decoration={
+        markings,
+        mark=between positions 0 and 1 step 1/#1 with {%
+          \node[focused] {};
+        },
+      }
+    }
+  }
+}
+
+% draw right angle
+\def\dotMarkRightAngle[size=#1](#2,#3,#4){%
+  \draw ($(#3)!#1!(#2)$) --
+  ($($(#3)!#1!(#2)$)!#1!90:(#2)$) --
+  ($(#3)!#1!(#4)$);
+  \path (#3) --node[circle,fill,inner sep=.5pt]{}
+  ($($(#3)!#1!(#2)$)!#1!90:(#2)$);
+}

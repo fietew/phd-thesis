@@ -1,0 +1,195 @@
+% geometry for continous virtual SSD in LWFS-VSS
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\Rvec}{2.0}
+
+\pgfmathsetmacro{\Rls}{5.0}
+\pgfmathsetmacro{\phiO}{-80}
+
+\pgfmathsetmacro{\xfs}{-1.75}
+\pgfmathsetmacro{\yfs}{3.0}
+\pgfmathsetmacro{\Rfs}{5.0}
+\pgfmathsetmacro{\philocal}{-80}
+
+\pgfmathsetmacro{\Ru}{\Rls-0.1}
+\pgfmathsetmacro{\Rv}{\Rfs-0.15}
+
+\pgfmathsetmacro{\Rdeltau}{\Rls+0.30}
+
+\pgfmathsetmacro{\phider}{0}
+\pgfmathsetmacro{\Rder}{1.25}
+\pgfmathsetmacro{\Rderlocal}{1.25}
+
+\pgfmathsetmacro{\phips}{-60}
+\pgfmathsetmacro{\Rps}{5.0}
+
+\pgfmathsetmacro{\phi}{85}
+\pgfmathsetmacro{\R}{6.0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Local Domain
+\draw[very thick, draw=black!50] ($(-95:\Rfs)+(\xfs,\yfs+\Rfs)$) arc 
+(-95:-40:\Rfs);
+\draw[draw=black,-latex']($(-65:\Rv)+(\xfs,\yfs+\Rfs)$) arc (-65:-60:\Rv)
+  node[above, sloped, midway] {$v$};
+
+\foreach \phifs in {-92.5, -90, ..., -45}
+{
+  \node (fs\phifs) at ($(\phifs:\Rfs)+(\xfs,\yfs+\Rfs)$)  {};
+}
+
+\coordinate (xl) at ($(\philocal:\Rfs)+(\xfs,\yfs+\Rfs)$);
+\node[below=2pt of xl] {$\sfposlocal$};
+
+% coordinate axes
+\coordinate (tl) at ($(xl) + (\philocal+90:\Rderlocal)$);
+\coordinate (nl) at ($(xl) + (\philocal+180:\Rderlocal)$);
+
+\draw[-latex'] (xl) -- (tl)
+  node[below, at end, sloped] {$\sftangent[subscript=local]$};
+\draw[-latex'] (xl) -- (nl)
+  node[above, at end, sloped, rotate=90] {$\sfnormallocal$};
+
+% sound field
+\node[circle, fill=black!50,inner sep=2pt] (source) at 
+($(xl)+(\phips:\Rps)$) {};
+% draw "sound waves"
+\foreach \Rwaves in {0.3, 0.6, 0.9}
+{
+  \draw[draw=black!50] ($(source)+(\phips+150:\Rwaves)$) arc 
+  (\phips+150:\phips+210:\Rwaves);
+}
+\draw[dashed] (xl) -- (source);
+
+\coordinate (kP) at ($(xl) + (\phips:-\Rvec)$);
+\draw[-latex', thick] (xl) -- (kP)
+  node[sloped, near end, below] {$\sfkvecnormS(\sfposlocal)$};
+
+% projection on the axes
+\coordinate (kPt) at ($(tl)!(kP)!(xl)$);
+\coordinate (kPn) at ($(nl)!(kP)!(xl)$);
+
+%\draw[dashed] (kPt) -- (xl);
+%\draw[dashed] (kPt) -- (kP);
+%\draw[dashed] (kPn) -- (kP) 
+%node[above, midway, sloped] {$\sfk_{\sfvirtualsource,\sftangentsec}$};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Loudspeaker Domain
+
+
+\draw[thick, draw=black] ($(-65:\Rls)+(0,\Rls)$) arc (-65:-120:\Rls);
+\draw[draw=black,-latex'] ($(-70:\Ru)+(0,\Rls)$) arc (-70:-65:\Ru)
+node[above, sloped, midway] {$u$};
+\draw[draw=black,|-|]($(-95:\Rdeltau)+(0,\Rls)$) arc 
+  (-95:-100:\Rdeltau) node[below, sloped, midway] {$\sfdelta_{\sfpossec}$};
+
+\foreach \phils in {-115, -110, ..., -70}
+{
+  \node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=\phils-180,
+  anchor=cone] (ls\phils) at ($(\phils:\Rls)+(0,\Rls)$)  {};
+}
+
+\coordinate (xO) at ($(\phiO:\Rls)+(0,\Rls)$);
+\node[below=5pt of xO] {$\sfpossec$};
+
+% coordinate axes
+\coordinate (tO) at ($(xO) + (\phiO+90:\Rder)$);
+\coordinate (nO) at ($(xO) + (\phiO+180:\Rder)$);
+
+\draw[-latex'] (xO) -- (tO)
+  node[below, at end, sloped] {$\sftangentsec$};
+\draw[-latex'] (xO) -- (nO)
+  node[above, at end, sloped, rotate=90] {$\sfnormalsec$};
+
+%% point of evaluation
+\coordinate[circle, 
+fill=black,
+inner sep=1pt,
+label={90:$\sfpos$}] (pos) at ($(xO)+(\phi:\R)$) {};
+\draw[dashed] (xO) -- (pos.center);
+
+\coordinate (kG) at ($(xO) + (\phi:\Rvec)$);
+\draw[-latex', thick] (xO) -- (kG)
+  node[sloped, at end, below] {$\sfkvecnormG(\sfpos-\sfpossec)$};
+
+% projection on the axes
+\coordinate (kGt) at ($(tO)!(kG)!(xO)$);
+\coordinate (kGn) at ($(nO)!(kG)!(xO)$);
+
+%\draw[dashed] (kGt) -- (xO);
+%\draw[dashed] (kGt) -- (kG);
+%\draw[dashed] (kGn) -- (kG)
+%  node[above, midway] {$\sfk_{\sfgreens,\sftangentsec}$};
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Interactions
+\draw[dashed] (xO) -- (xl);
+
+\path ($(xl)-(xO)$); \pgfgetlastxy{\XGfs}{\YGfs};
+\pgfmathparse{atan2(\YGfs,\XGfs)}
+\edef\phiGfs{\pgfmathresult}
+
+\coordinate (kGfs) at ($(xO) + (\phiGfs:\Rvec)$);
+\draw[-latex', thick] (xO) -- (kGfs)
+  node[sloped, near end, below] {$\sfkvecnormG(\sfposlocal-\sfpossec)$};
+
+% projection on the axes
+\coordinate (kGfst) at ($(tO)!(kGfs)!(xO)$);
+\coordinate (kGfsn) at ($(nO)!(kGfs)!(xO)$);
+
+%\draw[dashed] (kGfst) -- (xO);
+%\draw[dashed] (kGfst) -- (kGfs);
+%\draw[dashed] (kGfsn) -- (kGfs)
+% node[above, midway] {$\sfk_{\sfgreens,\sftangentsec}$};
+
+\coordinate (kGfs) at ($(xl) + (\phiGfs:\Rvec)$);
+
+% projection on the axes
+\coordinate (kGfst) at ($(tl)!(kGfs)!(xl)$);
+\coordinate (kGfsn) at ($(nl)!(kGfs)!(xl)$);
+
+%\draw[dashed] (kGfst) -- (xl);
+%\draw[dashed] (kGfst) -- (kGfs);
+%\draw[dashed] (kGfsn) -- (kGfs)
+% node[above, midway] {$\sfk_{\sfgreens,\sftangentsec}$};
+
+
+\end{tikzpicture}
+%
+\end{document}

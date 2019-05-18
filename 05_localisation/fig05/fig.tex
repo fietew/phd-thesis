@@ -1,0 +1,49 @@
+% exaggeratedly missplaced laser pointer
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+\begin{tikzpicture}
+\pgfmathsetmacro{\Dist}{3.25}
+\draw[black, thick] (-30:\Dist) arc (-30:30:\Dist)
+   node[above left=0.125, at start]{\ft curtain};
+\coordinate (laser-centre) at (-0.04,-0.02);
+\node at (0,0) {\includegraphics[scale=0.3]{head}};
+\draw[black,dashed,thick] (laser-centre) -- +(14:\Dist)
+  node[midway, sloped, above, inner sep =1pt] {\ft median plane};
+\draw[red,dashed,thick] (laser-centre) -- +(\Dist,0)
+  node[midway, sloped, below, inner sep =1pt] {\ft laser beam}
+  node[at end, rotate=-90, anchor=south, inner sep =4pt] {\ft calibration 
+  mark}
+  node [at end, fill, minimum width=0.1cm, inner sep = 0, circle]{};
+\node at (\Dist,0) {};%
+\node at (laser-centre) {\includegraphics[scale=0.3]{pointer}};%
+\end{tikzpicture}
+%
+\end{document}

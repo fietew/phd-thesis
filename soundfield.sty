@@ -1,0 +1,643 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MIT License
+%
+% Copyright (c) 2017 Fiete Winter
+%
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+%
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{soundfield}
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{accents}
+\RequirePackage{pgf, pgffor}
+\RequirePackage[T3,T1]{fontenc}
+
+\pgfkeys{/sf/.is family}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FUNCTIONS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% helper function to create a key representing a variable length list including brackets and delimiter
+% parameters:
+%   optional parameters (keyvalue pairs): left bracket, right bracket, delimiter, modifier
+%   keyname: name of key
+%
+% Examples:
+% afterwards elements can be added via: \pgfkeys{sf, <keyname>={arg1,arg2,arg3}}
+%
+% all non-empty lists will be printed by calling: \pgfkeys{sf, print}
+% all lists will be reset by calling: \pgfkeys{sf, reset}
+\newcommand\sfnewlistkey[2][]{  %
+  \pgfkeys{  %
+    sf,  %
+    #2/.style={ #2/enum/.list={##1} },  %  interprete 'argument = {1,2,3}' as list
+    % initialize enum of valid elements
+    #2/enum/.is choice,
+    % 
+    #2/current/.initial=\empty,  %
+    #2/current/.code = {  %
+      \edef\currentvalue{##1}
+      \edef\listvalue{\pgfkeysvalueof{/sf/#2/current}}
+      \ifx\currentvalue\empty\else
+        \ifx\listvalue\empty\else
+          \pgfkeys{sf, #2/current/.append=\pgfkeysvalueof{/sf/#2/delimiter} }
+        \fi
+        \pgfkeys{sf, #2/current/.append={##1}}
+      \fi
+    },
+    #2/print/.code={  %
+      \edef\listvalue{\pgfkeysvalueof{/sf/#2/current}}
+      \ifx\listvalue\empty\else
+        \pgfkeysvalueof{/sf/#2/modifier}
+        {  %
+        \pgfkeysvalueof{/sf/#2/brackets/left}
+        \pgfkeysvalueof{/sf/#2/current}
+        \pgfkeysvalueof{/sf/#2/brackets/right}
+        }
+      \fi
+    },
+    % add list to print
+    print/.append style={ #2/print },  %
+    % reset list
+    #2/reset/.style = { #2/current/.initial=\empty },  %
+    % replace current content of list
+    #2/rep/.style = { #2/reset, #2=##1 },  %
+    % append reset function to overall reset function
+    reset/.append style={ #2/reset }  %
+  }
+  
+  \pgfkeys{sf,  %
+    list/.cd, %
+    left bracket/.style = {/sf/#2/brackets/left/.initial={##1}},  %
+    right bracket/.style = {/sf/#2/brackets/right/.initial={##1}},  %
+    delimiter/.style = {/sf/#2/delimiter/.initial={##1}},  %
+    modifier/.style = {/sf/#2/modifier/.initial={##1}},   %
+    % default values
+    left bracket=,  %
+    right bracket=,  %
+    delimiter= {,},  %
+    modifier=,  %
+    % optional input
+    #1  %
+  }
+}
+% Define a possible choice for key
+% \sfnewkeychoice{<keyname>}{<choicename>}{<value>}
+\newcommand\sfnewkeychoice[3]{  %
+  \pgfkeys{sf, #1/enum/#2/.style={#1/current=#3}}  %
+}
+% Link a choice for key to symbol
+% \sflinkkeychoice{<keyname>}{<choicename>}{<symbol>}
+\newcommand\sflinkkeychoice[3]{%
+  \pgfkeys{sf,#1/enum/#2/.style={% 
+    #1/current=\pgfkeysvalueof{/sf/symbol/enum/#3}%
+  }}%
+}
+
+% Define a new symbol
+% \sfnewsymbol[list of <key-value-pairs>]{<symbolname>}{<value>}
+\newcommand\sfnewsymbol[3][]{  %
+  \pgfkeys{sf, symbol/new={#2}{#3}{#1} } %
+}
+% Redefine a new symbol
+% \sfrenewsymbol[list of <key-value-pairs>]{<symbolname>}{<value>}
+\newcommand\sfrenewsymbol[3][]{  %
+  \pgfkeys{sf, symbol/renew={#2}{#3}{#1} } %
+}
+% Extend existing symbols by additional parameters speficied by key-value-pairs
+% \sfextendsymbol[list of <key-value-pairs>]{list of <symbol>}{<symbolsuffix>}
+%
+% Afterwards for each <symbol> specfied the following command is available:
+% \sf<symbolname><symbolsuffix>
+\newcommand\sfextendsymbol[3][]{  %
+  \pgfkeys{sf,  %
+    tmp/symbolname/.style={  %
+      tmp/symbolsuffix/.style={symbol/extend={##1}{####1}{#1}},  %
+      tmp/symbolsuffix/.list={#3}  %
+    },  %
+    tmp/symbolname/.list={#2}  %
+  }  %
+}
+
+\newcommand{\sfprint}[1][]{  %
+  \pgfkeys{sf, reset, #1, print, reset}
+}
+
+\newcommand\sfnewprefix[2]{  %
+  \sfnewkeychoice{prefix}{#1}{#2}
+}
+
+\newcommand\sfcustom[2][]{
+  \sfprint[symbol/current=#2, #1] 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% INITIALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Prefix
+\pgfkeys{
+  sf,  %
+  prefix/.style = { prefix/enum=#1 },
+  prefix/enum/.is choice,  %
+  prefix/current/.initial=\empty
+}
+
+%% Reset and Print
+\pgfkeys{  %
+  sf,  %
+  reset/.style={  %
+    symbol/current/.initial=\empty,  %
+    prefix/current/.initial=\empty,  %
+  },  %
+  print/.style={  %
+    symbol/current/print  %
+  },  %
+}
+
+%% Symbols
+\pgfkeys{
+  sf,  %
+  symbol/.style = {symbol/enum=#1},
+  symbol/enum/.is choice,  %
+  symbol/new/.style n args={3}{  %
+    symbol/newcommand={#1},  %
+    symbol/enum/#1/.initial=#2,  %
+    symbol/enum/#1/.style={symbol/current=\pgfkeysvalueof{/sf/symbol/enum/#1}, #3}  %
+  },  %
+  symbol/renew/.style n args={3}{  %
+    symbol/enum/#1/.initial=#2,  %
+    symbol/enum/#1/.style={symbol/current=\pgfkeysvalueof{/sf/symbol/enum/#1}, 
+    #3}  %
+  },  %
+  symbol/extend/.style n args={3}{  %
+    symbol/newcommand={#1#2},  %
+    symbol/enum/#1#2/.style={symbol/enum/#1, #3}
+  }, %
+  symbol/newcommand/.code= {  %
+    \expandafter\newcommand\csname sf#1\endcsname[1][]{%
+      \sfprint[symbol=#1, ##1]  %
+    }  %
+  },  %
+  % current symbol for printing
+  symbol/current/.initial=\empty,  %
+  symbol/current/print/.code={  %
+    \pgfkeysvalueof{/sf/prefix/current}  %
+    {\pgfkeysvalueof{/sf/symbol/current}}
+  }
+}
+
+%% Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\pdiff}[2][]{\frac{\partial^{#1}}{\partial #2^{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% SYMBOLS, SUBSCRIPTS, SUPERSCRIPTS, MODIFIERS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of Modifiers %%%%
+\sfnewlistkey[modifier={_}]{subscript}  % subscript
+\sfnewlistkey[modifier={^}]{superscript}  % superscript
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of Elementary Symbols %%%%
+%%% Coordinates %%%
+
+%% Cartesian Coordiantes %%
+\sfnewsymbol{x}{x}
+\sfnewsymbol{y}{y}
+\sfnewsymbol{z}{z}
+%% Cylindrical Coordinates %%
+\sfnewsymbol{cylr}{\rho}
+\sfnewsymbol{cylphi}{\phi}
+\sfnewsymbol{cylz}{z}
+%% Spherical Coordinates %%
+\sfnewsymbol{sphr}{r}
+\sfnewsymbol{sphphi}{\phi}
+\sfnewsymbol{sphtheta}{\vartheta}
+
+%%% Vectors %%%
+
+\sfnewprefix{vec}{\mathbf}
+\sfnewsymbol[prefix=vec]{pos}{x}  % position vector
+\sfnewsymbol[prefix=vec]{normal}{n}  % normal vector
+\sfnewsymbol[prefix=vec]{tangent}{t}  % tangent vector
+\sfnewsymbol[prefix=vec]{origin}{0}  % coordinate's origin
+\sfnewsymbol[prefix=vec]{unit}{u}  % unit vector
+
+%%% Frequency Domain %%%
+
+%% Spatio-Frequency Domain in Cartesian Coordinates %%
+\sfnewsymbol{k}{k}
+\sfnewsymbol{kappa}{\kappa}
+\sfnewsymbol{kappaprime}{\kappa'}
+\sfnewsymbol{kvecnorm}{\hat{\mathbf{k}}}
+%\sfnewsymbol{kappa}{\sqrt{\left(\frac \omega c\right)^2 - k_x^2 - k_y^2}}
+%\sfnewsymbol{kappaprime}{\sqrt{k_x^2 + k_y^2 - \left(\frac \omega c\right)^2}}
+%% Spatio-Frequency Domain in Polar Coordinates %%
+\sfnewsymbol{cylm}{m}
+\sfnewsymbol{cylmu}{\mu}
+%% Spatio-Frequency Domain in Spherical Coordinates %%
+\sfnewsymbol{sphn}{n}
+\sfnewsymbol{sphm}{m}
+\sfnewsymbol{sphnu}{\nu}
+\sfnewsymbol{sphmu}{\mu}
+%% Time-Frequency Domain %%
+\sfnewsymbol{omega}{\omega}  % angular frequency
+\sfnewsymbol{f}{f}  % temporal frequency
+
+%% Misc.
+\sfnewsymbol{wc}{k}  % wavenumber
+\sfnewsymbol{wl}{\lambda}  % wavelength
+\sfnewsymbol{t}{t}  % time
+\sfnewsymbol{n}{n}  % discrete time
+\sfnewsymbol{T}{T}  % constant time
+
+%%% Set Theory, Areas and Boundaries %%%
+
+\sfnewsymbol{set}{\Omega}
+\sfnewsymbol{boundary}{\partial \Omega}
+\sfnewsymbol{volume}{V}
+\sfnewsymbol{area}{A}
+
+\sfnewsymbol{region}{\mathcal S}
+\sfnewsymbol{contour}{\partial {\mathcal S}}
+\sfnewsymbol{circle}{\mathcal{C}}  % circular area
+\sfnewsymbol{R}{R}  % radius of circular area
+\sfnewsymbol{line}{l}
+
+%% Sets of numbers
+\sfnewsymbol{complex}{\mathbb C}
+\sfnewsymbol{real}{\mathbb R}
+\sfnewsymbol{int}{\mathbb Z}
+\sfnewsymbol{natural}{\mathbb N}
+
+%%% Special Functions %%%
+
+%% spherical Basis function
+\sfnewsymbol[subscript=sphn, superscript=sphm]{sphharmonics}{\Psi}
+\sfnewsymbol[subscript=sphn]{sphbessel}{j}
+\sfnewsymbol[subscript=sphn]{sphneumann}{y}
+\sfnewsymbol[subscript=sphn,superscript=secondkind]{sphhankel}{h}
+\sfnewsymbol[superscript=sphm,subscript=sphn]{sphreg}{I}% int. sph. basis func.
+\sfnewsymbol[superscript=sphm,subscript=sphn]{sphsin}{E}% ext. sph. basis func. 
+\sfnewsymbol[superscript={sphm,sphmu},subscript={sphn,sphnu}]{sphrr}{(I|I)}
+\sfnewsymbol[superscript={sphm,sphmu},subscript={sphn,sphnu}]{sphss}{(E|E)}
+\sfnewsymbol[superscript={sphm,sphmu},subscript={sphn,sphnu}]{sphrs}{(I|E)}
+\sfnewsymbol[superscript={sphm,sphmu},subscript={sphn,sphnu}]{sphsr}{(E|I)}
+%% cylindrical Basis function
+\sfnewsymbol[subscript=cylm]{cylbessel}{J}
+\sfnewsymbol[subscript=cylm]{cylneumann}{Y}
+\sfnewsymbol[subscript=cylm,superscript=secondkind]{cylhankel}{H}
+\sfnewsymbol[subscript=cylm]{cylreg}{I}% int. cyl. basis func.
+\sfnewsymbol[subscript=cylm]{cylsin}{E}% ext. cyl. basis func.
+\sfnewsymbol[subscript={cylm,cylmu}]{cylrr}{(I|I)}
+\sfnewsymbol[subscript={cylm,cylmu}]{cylss}{(E|E)}
+\sfnewsymbol[subscript={cylm,cylmu}]{cylrs}{(I|E)}
+\sfnewsymbol[subscript={cylm,cylmu}]{cylsr}{(E|I)}
+%% differential Operators
+\sfnewsymbol{laplace}{\nabla^2} % scalar Laplace operator
+\sfnewsymbol{grad}{\mathbf{grad}} % gradient of a scalar field
+\sfnewprefix{differential}{\,\mathrm d}
+\sfnewprefix{partial}{\partial}
+\sfnewprefix{pdiff}{\pdiff}
+\sfnewprefix{pdifftwo}{\pdiff[2]}
+%% other %%
+\sfnewsymbol{dirac}{\delta}
+\sfnewsymbol{legendre}{L}
+\sfnewsymbol{heaviside}{\Theta}
+\sfnewsymbol{signum}{\mathrm{sgn}}
+% Sha Symbol
+\DeclareFontFamily{U}{wncy}{}
+\DeclareFontShape{U}{wncy}{m}{n}{<->wncyr10}{}
+\DeclareSymbolFont{mcy}{U}{wncy}{m}{n}
+\DeclareMathSymbol{\Sha}{\mathord}{mcy}{"58}
+\sfnewsymbol{comb}{\Sha}
+
+%%% Sound Field Synthesis %%%
+%% time-frequency dependent %%
+\sfnewsymbol{pressure}{P}  % sound pressure
+\sfnewsymbol{virtualsource}{S}  % virtual sound field
+\sfnewsymbol{driving}{D}  % driving function
+\sfnewsymbol{greens}{G}  % Green's function
+\sfnewsymbol{hrtf}{H}  % head-related transfer function
+\sfnewsymbol{brtf}{B}  % binaural room transfer function
+\sfnewsymbol{filter}{H}  % head-related transfer function
+\sfnewsymbol{density}{Q}  % density function
+\sfnewsymbol{function}{F}  % function
+\sfnewsymbol{kernel}{K}  % kernel
+\sfnewsymbol{phase}{\Phi}  % kernel
+\sfnewsymbol{amp}{A}  % kernel
+%% time-frequency independent %%
+\sfnewsymbol{select}{a}  % selection function
+\sfnewsymbol{window}{w}  % windows function
+\sfnewsymbol[subscript=twohalfD]{correct}{c}  % correction factor
+\sfnewsymbol{dist}{\Delta}  % selection function
+%%% Transforms %%%
+
+\sfnewprefix{transform}{\mathcal}
+\sfnewsymbol[prefix=transform]{fourier}{F}  % general fourier transform
+\sfnewsymbol[prefix=transform]{inh}{I}  % inhomogeneous part of a sound field
+\sfnewsymbol[prefix=transform]{hom}{H}  % homogeneous part of a sound field
+\sfnewsymbol[prefix=transform]{sht}{S}  % spherical harmonics transform
+\sfnewsymbol[prefix=transform]{cht}{C}  % circular harmonics transform
+
+%%% Utilities %%%
+
+%% Numbers %%
+\sfnewsymbol{N}{N}
+\sfnewsymbol{M}{M}
+%% Constants %%
+\sfnewprefix{const}{\mathrm}
+\sfnewsymbol[prefix=const]{euler}{e}  % Euler number
+\sfnewsymbol[prefix=const]{im}{j}  % imaginary unit
+\sfnewsymbol[prefix=const]{speedofsound}{c}  % speed of sound
+\sfnewsymbol[prefix=const]{c}{c}  % speed of sound
+%% Misc. %%
+\sfnewsymbol{dot}{\,.}
+\sfnewsymbol{comma}{\,{,}}
+\sfnewsymbol{err}{\epsilon}  % general error of something
+\sfnewsymbol{delta}{\Delta}  % sampling distance
+\sfnewsymbol{cost}{c}  % cost functions
+\sfnewsymbol{eta}{\eta}
+\sfnewsymbol{zeta}{\zeta}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of elementary Prefixes %%%%
+
+%%% Normalisation %%%
+\sfnewprefix{norm}{\hat}
+
+%%% Transforms %%%
+%% Temporal %%
+\sfnewprefix{time}{\MakeLowercase}
+\sfnewprefix{ft}{\tilde}
+%% Cartesian Coordinates %%
+\sfnewprefix{pwd}{\tilde}  % general plane wave decompostion 
+\sfnewprefix{ppwd}{\bar}  % signature function
+%% Cylindrical Coordinates %%
+\sfnewprefix{cht}{\accentset{\diamond}}  % cylindrical harmonics transform
+\sfnewprefix{rcb}{\check}  % regular cylindrical basis transform
+\sfnewprefix{scb}{\hat}  % singular cylindrical basis transform
+%% Spherical Coordinates %%
+\sfnewprefix{sht}{\accentset{\circ}} % spherical harmonics transform
+\sfnewprefix{rsb}{\breve} % regular spherical basis expansion
+\DeclareSymbolFont{tipa}{T3}{cmr}{m}{n}
+\DeclareMathAccent{\invbreve}{\mathalpha}{tipa}{16}
+\sfnewprefix{ssb}{\invbreve} % regular spherical basis expansion 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of elementary Subscripts %%%%
+
+%%% Sound Field Synthesis %%%
+
+%% Dimensions %%
+\sfnewkeychoice{subscript}{twoD}{\mathrm{2D}}
+\sfnewkeychoice{subscript}{twohalfD}{\mathrm{2.5D}}
+\sfnewkeychoice{subscript}{threeD}{\mathrm{3D}}
+%% Boundary Conditions %%
+\sfnewkeychoice{subscript}{neumann}{\mathrm{N}}  % Neumann/sound hard
+\sfnewkeychoice{subscript}{dirichlet}{\mathrm{D}}  % Dirichlet/sound soft
+\sfnewkeychoice{subscript}{robin}{\mathrm{R}}  % Robin
+%% Source Types %%
+\sfnewkeychoice{subscript}{s}{\mathrm{s}}  % virtual source
+\sfnewkeychoice{subscript}{pw}{\mathrm{pw}}  % plane wave
+\sfnewkeychoice{subscript}{ps}{\mathrm{ps}}  % point source
+\sfnewkeychoice{subscript}{dps}{\mathrm{dps}}  % dipole point source
+\sfnewkeychoice{subscript}{fs}{\mathrm{fs}}  % focused source
+\sfnewkeychoice{subscript}{ls}{\mathrm{ls}}  % line source
+%% Domains %%
+\sfnewkeychoice{subscript}{local}{\mathrm{l}}  % local domain
+\sfnewkeychoice{subscript}{sec}{0}  % loudspeaker domain
+\sfnewkeychoice{subscript}{wc}{\{\mathrm{0},l\}}  % wildcard for both
+\sfnewkeychoice{subscript}{interior}{\mathrm i}  % interior domain
+\sfnewkeychoice{subscript}{exterior}{\mathrm e}  % exterior domain
+\sfnewkeychoice{subscript}{h}{\mathrm{h}}  % head domain
+%% Coordinates Subscript
+\sfnewkeychoice{subscript}{pos}{{\mathbf{x}}}
+\sfnewkeychoice{subscript}{possec}{{\mathbf{x}_0}}
+\sfnewkeychoice{subscript}{poss}{{\mathbf{x}_{\mathrm{s}}}}
+%% HRTF %%
+\sfnewkeychoice{subscript}{left}{\mathrm{L}}
+\sfnewkeychoice{subscript}{right}{\mathrm{R}}
+\sfnewkeychoice{subscript}{leftright}{{\{\mathrm{L},\mathrm{R}\}}}
+%% others %%
+\sfnewkeychoice{subscript}{c}{\mathrm{c}}  % "center"
+\sfnewkeychoice{subscript}{ref}{\mathrm{ref}}  % reference
+\sfnewkeychoice{subscript}{incoming}{\mathrm{in}}  % incoming
+\sfnewkeychoice{subscript}{scatter}{\mathrm{sc}}  % scattered
+\sfnewkeychoice{subscript}{pre}{\mathrm{pre}}  % pre
+\sfnewkeychoice{subscript}{samp}{\mathrm{s}}  % sampling
+\sfnewkeychoice{subscript}{spa}{\mathrm{SPA}}  % stationary phase approximation
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of Subscript derived from Elementary Symbols %%%%
+
+%% Cartesian Coordinates Subscript
+\sflinkkeychoice{subscript}{x}{x}
+\sflinkkeychoice{subscript}{y}{y}
+\sflinkkeychoice{subscript}{z}{z}
+%% Cylindrical Coordinates Subscript
+\sflinkkeychoice{subscript}{cylr}{cylr}
+\sflinkkeychoice{subscript}{cylphi}{cylphi}
+%% Spherical Coordinates Subscript
+\sflinkkeychoice{subscript}{sphr}{sphr}
+%% Wave Number Domain Subscript
+\sflinkkeychoice{subscript}{k}{k}
+%% Circular Harmonics Subscript
+\sflinkkeychoice{subscript}{cylm}{cylm}
+\sflinkkeychoice{subscript}{cylmu}{cylmu}
+%% Spherical Harmonics Subscript
+\sflinkkeychoice{subscript}{sphn}{sphn}
+\sflinkkeychoice{subscript}{sphnu}{sphnu}
+%% Time Subscript
+\sflinkkeychoice{subscript}{t}{t}
+%% Error
+\sflinkkeychoice{subscript}{err}{err}  % error
+%% Misc. %%
+\sflinkkeychoice{subscript}{eta}{eta} 
+\sflinkkeychoice{subscript}{zeta}{zeta}
+
+%%% Sound Field Synthesis %%%
+\sflinkkeychoice{subscript}{pressure}{pressure}
+\sflinkkeychoice{subscript}{greens}{greens}
+\sflinkkeychoice{subscript}{driving}{driving}
+\sflinkkeychoice{subscript}{virtualsource}{virtualsource}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of Elementary Superscript %%%%
+
+\sfnewkeychoice{superscript}{sampled}{\mathrm{S}} % sampled
+\sfnewkeychoice{superscript}{truncated}{\mathrm{tr}}  % truncated
+\sfnewkeychoice{superscript}{sbl}{\mathrm{B}}  % spatial bandwidth limited
+
+%%% Operations %%%
+\sfnewkeychoice{superscript}{timereverse}{*} % time reversal/phase conjugation
+\sfnewkeychoice{superscript}{transpose}{T} % transpose
+\sfnewkeychoice{superscript}{inverse}{-1} 
+\sfnewkeychoice{superscript}{prime}{\prime}
+\sfnewkeychoice{superscript}{dprime}{\prime\prime}
+\sfnewkeychoice{superscript}{shift}{\dagger}  % shifted coordinate frame
+\sfnewkeychoice{superscript}{spp}{\ddagger}  % stationary phase point
+
+%% Hankel Functions
+\sfnewkeychoice{superscript}{firstkind}{(1)}
+\sfnewkeychoice{superscript}{secondkind}{(2)}
+
+%%% Sound Field Synthesis %%%
+%% Techniques
+\sfnewkeychoice{superscript}{SFS}{\mathrm{SFS}}
+\sfnewkeychoice{superscript}{WFS}{\mathrm{WFS}}
+\sfnewkeychoice{superscript}{LWFS}{\mathrm{LWFS}}
+\sfnewkeychoice{superscript}{LWFS-SBL}{\mathrm{LWFS-SBL}}
+\sfnewkeychoice{superscript}{LWFS-VSS}{\mathrm{LWFS-VSS}}
+\sfnewkeychoice{superscript}{HOA}{\mathrm{HOA}}
+\sfnewkeychoice{superscript}{NFCHOA}{\mathrm{NFCHOA}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% List of Superscript derived from Elementary Symbols %%%%
+
+%% Spherical Harmonics Superscript
+\sflinkkeychoice{superscript}{sphm}{sphm}
+\sflinkkeychoice{superscript}{sphmu}{sphmu}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Extension of Symbols %%%%
+
+%%% Vectors %%%
+
+%% Unit Vector %%
+\sfextendsymbol[subscript=x]{unit}{x}  % unit vector in x-direction
+\sfextendsymbol[subscript=y]{unit}{y}  % unit vector in y-direction
+\sfextendsymbol[subscript=z]{unit}{z}  % unit vector in z-direction
+%% Wave Vector %%
+\sfextendsymbol[prefix=vec]{k}{vec}  % wave number vector
+\sfextendsymbol[subscript=x]{k}{x}  % wave vector component in x-direction
+\sfextendsymbol[subscript=y]{k}{y}  % wave vector component in y-direction
+\sfextendsymbol[subscript=z]{k}{z}  % wave vector component in z-direction
+\sfextendsymbol[subscript=cylr]{k}{cylr}  % wave vector component in x-y-plane
+% polar and azimuth angle of wave vector
+\sfextendsymbol[subscript=k]{sphphi, sphtheta}{k}
+
+%%% Transforms %%%
+%% Fourier %%
+\sfextendsymbol[subscript=x]{fourier}{x}  % fourier transform w.r.t. x
+\sfextendsymbol[subscript=y]{fourier}{y}  % fourier transform w.r.t. y
+\sfextendsymbol[subscript=z]{fourier}{z}  % fourier transform w.r.t. z
+\sfextendsymbol[subscript={x,y}]{fourier}{xy}  % fourier transform w.r.t. x, y
+\sfextendsymbol[subscript={y,z}]{fourier}{yz}  % fourier transform w.r.t. y, z
+\sfextendsymbol[subscript={x,z}]{fourier}{xz}  % fourier transform w.r.t. x, z
+\sfextendsymbol[subscript={x,y,z}]{fourier}{xyz}  % fourier transform w.r.t. 
+% x,y,z
+\sfextendsymbol[subscript=t]{fourier}{t}  % fourier transform w.r.t. t
+%% SHT %%
+\sfextendsymbol[superscript=inverse]{sht, cht, fourier}{inv}
+
+%% Spatial Transforms
+\sfextendsymbol[prefix=pwd]{normal, greens, driving, hrtf, virtualsource}{pwd}
+
+%%% Differential Operators %%%
+\sfextendsymbol[prefix=differential]{x, y, z, cylr, cylphi, sphr, sphphi, 
+  sphtheta, t, volume, area, line, kx, ky, kz}{diff}
+\sfextendsymbol[prefix=pdiff]{x, y, z, cylr, cylphi, sphr, sphphi, sphtheta}%
+{pdiff}
+\sfextendsymbol[prefix=pdifftwo]{x, y, z, cylr, cylphi, sphr, sphphi, sphtheta}%
+{pdifftwo}
+\sfextendsymbol[subscript=pos]{grad, laplace}{pos}  % w.r.t. x
+\sfextendsymbol[subscript=possec]{grad, laplace}{possec}  % w.r.t. x0
+
+%%% Error %%%
+\sfextendsymbol[subscript=err]{pressure}{err} 
+
+%%% Sound Field Synthesis %%%
+
+%% Sound Fields (inhom., hom., Density, Phase, Amplitude) %%
+\sfextendsymbol[subscript=pressure]{inh, hom, density, phase, amp,  kvec, 
+  kvecnorm}{P}
+\sfextendsymbol[subscript=greens]{inh, hom, density, phase, amp, kvec, 
+  kvecnorm}{G}
+\sfextendsymbol[subscript=virtualsource]{inh, hom, density, phase, amp, kvec, 
+  kvecnorm}{S}
+\sfextendsymbol[subscript=driving]{phase, amp}{D}
+\sfextendsymbol[superscript=prime]
+  {phase, phaseP, phaseG, phaseS}{p}
+\sfextendsymbol[superscript=dprime]
+  {phase, phaseP, phaseG, phaseS}{pp}
+%% Source Types %%%
+\sfextendsymbol[subscript=s]%
+  {pos, normal, driving, areadiff, set, x, y, z, N}{s}
+\sfextendsymbol[subscript=pw]%
+  {pos, normal, driving, cylphi, sphtheta, sphphi, pressure, kvec, N, dist}{pw}
+\sfextendsymbol[subscript=ps]
+  {pos, normal, driving, pressure, sphr, sphtheta, sphphi, N, dist}{ps}
+\sfextendsymbol[subscript=dps]
+  {pos, normal, driving, pressure, sphr, sphtheta, sphphi, N}{dps}
+\sfextendsymbol[subscript=ls]{pos, normal, driving, pressure,cylr, cylphi}{ls}
+\sfextendsymbol[subscript=fs]
+  {pos, normal, driving, greens, density, inh, hom, set, N}{fs}
+%% Dimensionality %%%
+\sfextendsymbol[subscript=twoD]{greens, driving}{twoD}
+\sfextendsymbol[subscript=twohalfD]{pressure, driving}{twohalfD}
+\sfextendsymbol[subscript=threeD]{greens, driving}{threeD}
+%% Domains %%
+\sfextendsymbol[subscript=sec]{pos, normal, tangent, greens, select, 
+  driving, set, boundary, area, volume, line, areadiff, volumediff, linediff, 
+  laplace, xdiff, ydiff, zdiff, x, y, z, cylrdiff, cylphidiff, cylr, cylphi, 
+  sphr, sphrdiff, sphphi, sphphidiff, sphtheta, sphthetadiff, N, R}{sec}
+\sfextendsymbol[subscript=local]{pos, normal, driving, select, set, boundary, 
+  area, volume, areadiff, volumediff, cylr, cylphi, sphr, sphphi, sphtheta, 
+  sphrdiff, N, circle, R, region, contour}{local}
+\sfextendsymbol[subscript=h]{pos, cylphi, circle, set, boundary, 
+  region, contour, normal, R}{h}
+%% HRTFs and BRTFs %%
+\sfextendsymbol[subscript=left]{hrtf, brtf}{left}
+\sfextendsymbol[subscript=right]{hrtf, brtf}{right}
+\sfextendsymbol[subscript=leftright]{hrtf, brtf}{leftright}
+%% Sound Field Representations
+% spherical coordinates
+\sfextendsymbol[prefix=rcb, subscript=cylm]{pressure}{rcb}
+\sfextendsymbol[prefix=scb, subscript=cylm]{pressure}{scb}
+% spherical coordinates
+\sfextendsymbol[prefix=rsb, subscript=sphn, superscript=sphm]{pressure}{rsb}
+\sfextendsymbol[prefix=ssb, subscript=sphn, superscript=sphm]{pressure}{ssb}
+%% Boundary Conditions %%%
+\sfextendsymbol[subscript=neumann]{greens, pressure}{N}
+\sfextendsymbol[subscript=dirichlet]{greens, pressure}{D}
+%%% Others %%%
+\sfextendsymbol[subscript=c]{pos, normal, driving, circle, set, R}{c}
+\sfextendsymbol[subscript=ref]{pos, sphr}{ref}
+\sfextendsymbol[subscript=samp]{f, omega, T}{samp}
+\sfextendsymbol[subscript=scatter]{pressure}{sc}
+\sfextendsymbol[subscript=incoming]{pressure}{in}
+\sfextendsymbol[subscript=pre]{filter}{pre}
+\sfextendsymbol[prefix=norm]{f, k}{norm}
+\sfextendsymbol[superscript=sampled]{driving, f, fnorm}{S}
+\sfextendsymbol[superscript=truncated]{driving, f, fnorm}{tr}
+\sfextendsymbol[superscript=sbl]{virtualsource, driving, f, fnorm}{B}
+\sfextendsymbol[superscript=shift]{pos, possec}{shift}
+\sfextendsymbol[superscript=spp]{pos, x}{spp}
+
+%% Distances %%
+\sfextendsymbol[subscript=x]{delta}{x}
+\sfextendsymbol[subscript=y]{delta}{y}
+\sfextendsymbol[subscript=z]{delta}{z}
+\sfextendsymbol[subscript=cylphi]{delta}{cylphi}

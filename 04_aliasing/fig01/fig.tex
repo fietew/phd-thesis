@@ -1,0 +1,107 @@
+% block diagram for sampling
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}%
+\usepackage{trfsigns}%
+%
+\begin{document}
+%
+\tikzstyle{op} = [draw, circle, inner sep=0pt,minimum size=12pt]%
+\tikzstyle{switch} = [draw, fill, shape=circle, minimum size=2pt, inner 
+sep=0pt]%
+\tikzstyle{block} = [draw=black, rectangle, minimum height=0.75cm, minimum 
+width=1.4cm]%
+\tikzstyle{connection} = [draw=black, -latex']%
+%
+\begin{tikzpicture}[node distance = 2.0cm and 2cm]
+\pgfmathsetmacro\widthSampling{0.8}
+\pgfmathsetmacro\angleSampling{30}
+
+\pgfmathsetmacro\offset{-4}
+
+%%%%% Spatial Domain %%%%%%
+% Input
+\coordinate (P) at (0,0);
+% Sound Field Synthesis
+\node[block, right=1.5cm of P] (SFS) {SFS};
+% Sampling
+\coordinate[right=of SFS] (sampling) {};
+\node[switch] (samplingIn) at ($(sampling)+(-0.5*\widthSampling,0)$){};
+\node[switch] (samplingOut) at ($(sampling)+(0.5*\widthSampling,0)$){};
+\draw(samplingIn) -- +(\angleSampling:\widthSampling);
+\path (samplingIn) -- (samplingOut) node[below,midway]{$\sfdelta_{\sfcylphi}$};
+% Green's Function
+\node[block, right=of sampling] (G) {$\sfgreens(\sfpossec,\sfomega)$};
+% 
+\coordinate[right=1.5cm of G] (P25D);
+ 
+\draw[connection] (P) -- (SFS) 
+  node[above, at start, anchor=south west] 
+  {$\sfvirtualsource(\sfpos,\sfomega)$};
+\draw[connection] (SFS) -- (samplingIn) 
+  node[above, midway] {$\sfdriving(\sfpossec,\sfomega)$};
+\draw[connection] (samplingOut) -- (G) 
+  node[above, midway] {$\sfdriving[superscript=sampled](\sfpossec,\sfomega)$};
+\draw[connection] (G) -- (P25D) 
+  node[above, at end, anchor=south east]    
+    {$\sfpressure[superscript=sampled](\sfpos,\sfomega)$};
+  
+%%%%% Harmonics %%%%%%
+% Transform
+\node[below=1.0cm of sampling, anchor=center, rotate=-90, inner sep=0] 
+{\large $\laplace$};
+% Input
+\coordinate[below=of P] (P);
+% Sound Field Synthesis
+\node[block, right=1.5cm of P] (SFS) {SFS};
+% Sampling
+\coordinate[below=of sampling] (sampling) {};
+\node[op] (conv) at (sampling) {$*_{\sfcylm}$};
+\coordinate[below=1.0cm of conv] (sha) {};
+% Green's Function
+\coordinate[below=of G.center] (mult) {};
+\node[op] (mult) at (mult) {$\times$};
+\coordinate[below=1.0cm of mult] (G) {};
+% 
+\coordinate[below=of P25D] (P25D);
+
+\draw[connection] (P) -- (SFS) node[below, at start, anchor=north west] 
+  {$\sfvirtualsource[prefix=cht, subscript=cylm](\sfcylr,\sfomega)$};
+\draw[connection] (SFS) -- (conv) node[below, midway] 
+  {$\sfdriving[prefix=cht, subscript=cylm] (\sfomega)$};
+\draw[connection] (sha) -- (conv) node[left, near start] 
+  {$\frac{1}{\sfNsec} \sfcomb\left(\frac{m}{\sfNsec}\right)$};
+\draw[connection] (conv) -- (mult) node[below, midway]
+  {$\sfdriving[superscript=sampled, subscript=cylm,prefix=cht] (\sfomega)$};
+\draw[connection] (mult) -- (P25D) node[below, at end, anchor=north east] 
+  {$\sfpressure[prefix=cht,superscript=sampled,subscript={cylm}](\sfcylr,\sfomega)$};
+\draw[connection] (G) -- (mult) node[left, near start] 
+  {$\sfgreens[prefix=cht, subscript=cylm](\sfcylr,\sfomega)$};
+\end{tikzpicture}
+%
+\end{document}

@@ -1,0 +1,52 @@
+\begin{algorithmic}[1]
+  \Function{AliasingExtendedLWFS-VSS}{$\sfregion, 
+  \sfregion[subscript=h], 
+    \sfregionlocal$}
+    \Comment $\sfregion$ and $\sfregionlocal$ are assumed to be convex
+    \State $\sffS[superscript=LWFS-VSS]_{\sfregion[subscript=h]} \gets \infty$
+    \For {$\sfposlocal, \sfposlocal' \gets \sfcontourlocal$}
+      \Comment \eqref{eq:aliasing_lwfs-vss_D_convex}, densely sampled
+      \If{$\sfselect_{\sfvirtualsource}(\sfposlocal) = 0$}
+        \Comment \eqref{eq:aliasing_lwfs-vss_fS}
+        \State \Continue 
+        \Comment next virtual secondary source
+      \EndIf
+      \State
+        $\sfpossec, \sfpossec' \gets 
+        \Call{FindIntersection}{%
+          \sfposlocal,\sfkvecnormS(\sfposlocal),\sfregion
+        }$%
+      \Comment intersection of ray $\sfposlocal - \gamma 
+        \sfkvecnormS(\sfposlocal)$ and $\sfcontour$
+      \State $\Delta_{\sfpossec} \gets \Delta_u |\sfpossec'|$
+      \State
+        $ \sfknorm^{\min}_{\sfgreens,\sftangentsec},
+          \sfknorm^{\max}_{\sfgreens,\sftangentsec}
+          \gets 
+          \Call{MinMaxWavenumber}{\sfregion[subscript=h],\sfpossec}
+        $
+      \State
+      $\displaystyle
+      \sff \gets
+        \frac{\sfspeedofsound}
+        {%
+        \Delta_{\sfpossec}
+        \max\left(
+        \big|
+        \sfknorm^{\min}_{\sfgreens,\sftangentsec} -
+        \sfknorm_{\sfgreens,\sftangentsec}(\sfposlocal-\sfpossec)
+        \big|
+        ;
+        \big|
+          \sfknorm^{\max}_{\sfgreens,\sftangentsec} -
+          \sfknorm_{\sfgreens,\sftangentsec}(\sfposlocal-\sfpossec)
+        \big|
+        \right)
+        }
+      $
+      \State $\sffS[superscript=LWFS-VSS]_{\sfregion[subscript=h]}  \gets  
+        \min(\sffS[superscript=LWFS-VSS]_{\sfregion[subscript=h]}; f)$
+    \EndFor
+    \State \Return $\sffS[superscript=LWFS-VSS]_{\sfregion[subscript=h]}$
+  \EndFunction
+\end{algorithmic}

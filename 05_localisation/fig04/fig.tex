@@ -1,0 +1,87 @@
+% listeners during experiments in both studies
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+%
+\begin{tikzpicture}
+%
+%% SETUP OF 2017
+\node[anchor=north west,inner sep=0] (2017) at (0,0)
+  {\includegraphics[height=6cm]{fig_2017}};
+%
+\begin{scope}[shift={(2017.north west)}, 
+              x={(2017.north east)},
+              y={(2017.south west)}]
+  
+  \pgfmathsetmacro{\ratio}{5472/3648}
+  \pgfmathsetmacro{\offx}{0.04}
+  \pgfmathsetmacro{\offy}{\offx*\ratio}
+
+  \draw[color=white, latex'-] (3825/5472, 1065/3648) -- +(-\offx,-\offy)
+    node[above left]{\color{white} visual mark};
+  \draw[color=white, latex'-] (4188/5472, 810/3648) -- +(\offx,-\offy) 
+    node[above]{\color{white} laser spot};
+  \draw[color=white, latex'-] (630/5472, 413/3648) -- +(\offx,-\offy) 
+    node[right]{\color{white} laser pointer};
+  \draw[latex'-] (2052/5472, 2787/3648) -- +(\offx,\offy) 
+    node[right]{keypad};
+\end{scope}
+
+%% SETUP OF 2012
+\node[anchor=north west,inner sep=0, xshift=-0.75cm] (2012) at (2017.north 
+east)   
+{\includegraphics[height=6cm]{fig_2012}};
+
+\node[anchor=north east] at (2012.north east) {\ft CC BY 3.0 DE, Wierstorf 
+2014};
+
+\begin{scope}[shift={(2012.north west)},
+x={(2012.north east)},
+y={(2012.south west)}]
+
+\pgfmathsetmacro{\ratio}{4032/3024}
+\pgfmathsetmacro{\offx}{0.04}
+\pgfmathsetmacro{\offy}{\offx*\ratio}
+
+\draw[latex'-] (2409/4032, 819/3024) -- +(-\offx,-\offy) 
+node[above]{visual mark};
+\draw[latex'-] (3678/4032, 819/3024) -- +(-\offx,-\offy) 
+node[above]{laser spot};
+\draw[latex'-] (660/4032, 621/3024) -- +(\offx,-\offy) 
+node[above]{laser pointer};
+\draw[latex'-] (1780/4032, 2250/3024) -- +(\offx,3*\offy) 
+node[below right]{keyboard};
+\end{scope}
+
+%\node[anchor=north west,inner sep=0] (2017) at (0,0)    
+%  {\includegraphics[width=\columnwidth]{fig_2017}};
+\end{tikzpicture}
+%
+\end{document}

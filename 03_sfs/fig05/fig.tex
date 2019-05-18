@@ -1,0 +1,91 @@
+% sketch for focused point source
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\input{../../preamble/standalone}
+
+\begin{document}
+
+\begin{tikzpicture}
+%
+
+\pgfmathsetmacro{\alphafs}{-160}
+\pgfmathsetmacro{\alphasound}{80}
+\pgfmathsetmacro{\Rarrows}{1.1}
+\pgfmathsetmacro{\Rplane}{3.0}
+\pgfmathsetmacro{\scalefactor}{4.8}
+\coordinate (source) at (2.5,1.5);
+\coordinate (rectangleorigin) at ($(source) + (\alphafs+90:\Rplane)$);
+
+\useasboundingbox[thick, draw=white]
+  plot[scale=\scalefactor] file {fig.csv} -- cycle;
+
+\begin{scope}
+\clip[rotate around={\alphafs:(rectangleorigin)}] 
+  (rectangleorigin) rectangle +(-2*\Rplane,-2*\Rplane);
+\draw[draw=black, thick, fill=black!60]
+plot[scale=\scalefactor] file {fig.csv} -- cycle;
+\end{scope}
+
+\begin{scope}
+\clip[rotate around={\alphafs:(rectangleorigin)}] 
+(rectangleorigin) rectangle +(2*\Rplane,-2*\Rplane);
+\useasboundingbox[draw=black!60, thick, fill=area]
+  plot[scale=\scalefactor] file {fig.csv} -- cycle;
+\end{scope}
+
+\node[circle,fill=black, minimum width=0.2cm, inner sep = 0] (sourcenode) at 
+(source) {};
+
+\foreach \Rsound in {0.3, 0.6, 0.9}
+{
+  \draw[draw=black!50] ($(source)+(\alphafs+\alphasound:\Rsound)$)
+    arc (\alphafs+\alphasound:\alphafs-\alphasound:\Rsound);
+  \draw[draw=white] ($(source)+(\alphafs+\alphasound+180:\Rsound)$)
+    arc (\alphafs+\alphasound+180:\alphafs-\alphasound+180:\Rsound);
+}
+\foreach \ratioarrows in {-0.8, -0.4, 0.4, 0.8}
+{
+  \pgfmathsetmacro{\alphaarrows}{\alphasound*\ratioarrows}
+  \draw[black!50,-latex'] 
+    (sourcenode) -- +(\alphaarrows+\alphafs:\Rarrows);
+  \draw[white,latex'-] 
+    (sourcenode) -- +(\alphaarrows+\alphafs:-\Rarrows);
+}
+\draw[white,latex'-] (sourcenode) -- +(\alphafs:-\Rarrows);
+
+\draw[dashed]  (sourcenode)  -- +(\alphafs+90:\Rplane);
+\draw[dashed]  (sourcenode)  -- +(\alphafs-90:\Rplane);
+
+\draw[-latex'] (source) -- +(\alphafs:\Rarrows) node[above, at end] 
+{$\sfnormalfs$};
+
+\node[above left=0.025cm of source, anchor=south east] {$\sfposfs$};
+
+\end{tikzpicture}
+
+\end{document}

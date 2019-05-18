@@ -1,0 +1,153 @@
+% block diagram for the implementation of Wave Field Synthesis
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}
+%
+\begin{document}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Styles
+%
+\tikzstyle{block} = [%
+draw, 
+rectangle, 
+%minimum width=1.15cm, 
+minimum height=0.55cm, 
+inner sep=2pt
+]%
+\tikzstyle{labelblock} = [%
+rectangle, 
+%minimum width=1.15cm, 
+inner sep=0pt
+]%
+\tikzstyle{op} = [draw, circle, minimum size=0.3cm, inner sep=0pt]%
+\tikzstyle{branch} = [circle, fill=black, minimum size=1mm, inner sep=0pt, node 
+distance = 1cm]%
+\tikzstyle{connect} = [-latex, draw]%
+\tikzstyle{dotted}= [dash pattern=on 0.0 mm off 1.0mm, line width 
+=0.5mm, line cap =round, shorten >= 2, shorten <=2]%
+%
+\begin{tikzpicture}
+%
+\pgfmathsetmacro{\xoffset}{0.20}
+\pgfmathsetmacro{\yoffset}{0.2}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes
+\useasboundingbox (-0.225,0) rectangle +(4.94 cm,-7.20);
+%
+% source signal
+\node[anchor=north west](signal) at (0,0) 
+{$\tilde{\sfvirtualsource[prefix=time]}[n]$} ;
+
+% optional pre-filter
+\node[block, dashed, below=0.5cm of signal] (prefilter) 
+{$\sffilterpre[prefix=time][n]$};
+\node[below=0.05 of prefilter] {option I};
+
+% delayline
+\node[block, right=0.5cm of prefilter, minimum width=3cm] 
+(delayline) {\shortstack{(fractional) \\ delayline}};
+\foreach \idx/\ratio in {0/0.05, 1/0.425, 3/0.875}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}
+  % inputs of delayline
+  \coordinate(delayline_in\idx) at 
+    ($\ratio*(delayline.north east) + \ratioinv*(delayline.north west)$); 
+  % outputs of delayline
+  \coordinate(delayline_out\idx) at 
+    ($\ratio*(delayline.south east) + \ratioinv*(delayline.south west)$);
+}
+
+\foreach \label/\idx in {0/0,1/1,{\sfNsec-1}/3}
+{
+  % delays
+  \node[above=0.3cm of delayline_in\idx, yshift=1.0*\yoffset cm, 
+  labelblock] 
+  (delay\idx) {%
+    \scriptsize 
+    $\tau(\sfpossec^{(\label)})$
+  };
+  % weights 
+  \node[op, below=1cm of delayline_out\idx] (mult\idx)     	
+  {\scriptsize$\times$};
+  \coordinate[left=0.5cm of mult\idx, 
+    label={above:{\scriptsize $w(\sfpossec^{(\label)})$}}] 
+    (weight\idx);
+  % contributions from other sound sources
+  \node[op] (add\idx) at
+  ($(delayline_out\idx) + (0,-2.0) + (0, -\idx*\yoffset)$) 
+  {\scriptsize +};
+  % optional post-filter
+  \node[block, dashed, below=1.0cm of add\idx,yshift=\idx*\yoffset cm] 
+    (postfilter\idx) {\rotatebox{90}{$\sffilterpre[prefix=time][n]$}};
+  % loudspeakers
+  \node[loudspeaker,below=0.3cm of postfilter\idx, anchor=west,rotate=-90] 
+  (driving\idx) {};
+  \node[below=0.2cm of driving\idx, labelblock] 
+  {\scriptsize $\sfdriving[prefix=time][\sfpossec^{(\label)}, n]$};
+}
+\node[left=1.5cm of add1] (sources) {\shortstack{other\\virtual\\sources}};
+
+\node[left=0.05 of postfilter0] {option II};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Connections
+
+% signal
+\draw[connect] (signal) -- (prefilter);
+
+% delayline
+\draw[connect] (prefilter) -- (delayline);
+
+\foreach \idx in {0,1,3}
+{
+  % delays
+  \draw[connect] (delay\idx) -- (delayline_in\idx);
+  % weights
+  \draw[connect] (delayline_out\idx) -- (mult\idx);
+  \draw[connect] (weight\idx) -- (mult\idx);
+  % add
+  \draw[connect] (mult\idx) -- (add\idx);
+  \draw[connect] ($(sources.east) + (0,1*\yoffset) + (0,-\idx*\yoffset)$) -- 
+  (add\idx);
+  % post-filter
+  \draw[connect] (add\idx) -- (postfilter\idx);
+  % loudspeakers
+  \draw[connect] (postfilter\idx) -- (driving\idx);
+}
+
+% dots
+\foreach \label in {delayline_in,postfilter,driving,add}
+{
+  \path (\label 1) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+
+\end{tikzpicture}
+
+\end{document}

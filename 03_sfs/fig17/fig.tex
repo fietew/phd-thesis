@@ -1,0 +1,230 @@
+% block diagram for the implementation of LWFS-SBL
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\input{../../preamble/standalone}
+
+\begin{document}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Styles
+
+\tikzstyle{block} = [
+draw, 
+rectangle, 
+%minimum width=1.15cm, 
+minimum height=0.55cm, 
+inner sep=2pt
+]
+\tikzstyle{labelblock} = [
+rectangle, 
+%minimum width=1.15cm, 
+inner sep=0pt
+]
+\tikzstyle{op} = [draw, circle, minimum size=0.3cm, inner sep=0pt]
+\tikzstyle{branch} = [circle, fill=black, minimum size=1mm, inner sep=0pt, 
+node 
+distance = 1cm]
+\tikzstyle{connect} = [-latex, draw]
+\tikzstyle{dotted}= [dash pattern=on 0.0 mm off 1.0mm, line width 
+=0.5mm, line cap =round, shorten >= 2, shorten <=2]
+
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\xoffset}{0.20}
+\pgfmathsetmacro{\yoffset}{0.20}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes
+
+% Bounding Box
+\useasboundingbox (0.0,-4.25) rectangle +(4.3cm,15.25cm);
+
+%% Central Node of IFFT
+\node[block, minimum width=3.5cm, anchor=west] (ifft) at (-0.4,0) {%
+  \shortstack{IFFT for conjugate\\ symmetric input}};
+
+%% Central Node for WFS
+\node[block, minimum width=3.5cm, below=2cm of ifft] (wfs) {%
+  \shortstack{WFS Renderer}};
+
+%% Central Node of IFFT
+\draw[draw=red, thick] ($(ifft.south west)+(-0.1cm,-0.1cm)$) rectangle 
+($(ifft.south east) + (0.1cm,8cm)$);
+
+% inputs of ifft
+\foreach \idx/\ratio in {0/0.2, 1/0.5, 3/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}
+  \coordinate(ifft_in\idx) at 
+    ($\ratio*(ifft.north east) + \ratioinv*(ifft.north west)$); 
+}
+% outputs of ifft and inputs of wfs renderer
+\foreach \idx/\ratio in {0/0.1, 1/0.3, 2/0.5, 3/0.7, 4/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}   
+  \coordinate(ifft_out\idx) at 
+    ($\ratio*(ifft.south east) + \ratioinv*(ifft.south west)$);
+    
+  \coordinate(wfs_in\idx) at 
+    ($\ratio*(wfs.north east) + \ratioinv*(wfs.north west)$);
+}
+% outputs of wfs renderer
+\foreach \idx/\ratio in {0/0.1, 1/0.375, 2/0.65, 3/0.975}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}   
+  \coordinate(wfs_out\idx) at 
+  ($\ratio*(wfs.south east) + \ratioinv*(wfs.south west)$);
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes above of IFFT
+
+% sound field coefficients
+\foreach \idx/\label in {0/0,1/1,3/M}
+{
+  % windowing
+  \node[op, above=0.5cm of ifft_in\idx] (mult_window\idx)     	
+  {\scriptsize$\times$};
+  \coordinate[left=0.35cm of mult_window\idx, 
+    label={above:{\scriptsize $\sfwindow[prefix=cht]_\label^M$}}] (window\idx);
+  
+  % contributions from other sound sources
+  \node[op, above=1.25cm of mult_window\idx, yshift=-\idx*\yoffset cm] 
+  (add\idx) 
+  {\scriptsize +};
+  
+  % complex weights
+  \node[op, above=2.0cm of mult_window\idx] (mult_weight\idx)     	
+    {\scriptsize$\times$};
+  \coordinate[left=0.35cm of mult_weight\idx, 
+    label={above:{\scriptsize $\sfim^{\label} g_\label$}}] (weight\idx);
+  
+  % filters
+  \node[block, dashed, above=0.5cm of mult_weight\idx, minimum height=1.5cm] 
+    (filter\idx) 
+    {\rotatebox{90}{%
+      $\accentset{\diamond}{\sffilter[prefix=time]}'_{\label,\mathrm{ps}}[n]$
+    }};
+}
+% label for contributions from other sound source
+\node[left=2.5cm of add1] (sources) {};
+% branching
+\node[branch, above=0.3cm of filter1] (branch1) {};
+% delayline
+\node[block, above=0.2cm of branch1] (delayline) {delayline};
+\node[left=0.3cm of delayline] (tau) {\scriptsize $\tau$};
+% NFCHOA label
+\node[red, above=0.2cm of delayline] (nfchoa) {NFCHOA Renderer};
+% branching
+\node[branch,above=0.2cm of nfchoa] (branchap) {};
+% lowpass
+\node[block, dashed, right=0.5cm of filter3, minimum height=1.5cm] (lp)
+  {\rotatebox{90}{$\sffilter[prefix=time]^{\mathrm{LP}}_{2\eta}[n]$}};
+% allpass
+\node[block, dashed, above=0.5cm of branchap, minimum height=1.5cm] (ap)
+  {\rotatebox{90}{$\sffilter[prefix=time]^{\mathrm{AP}}_{2\eta}[-n]$}};
+
+% source signal
+\node[above=0.5cm of ap](signal)
+  {$\tilde{\sfvirtualsource[prefix=time]}[n]$};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes below of IFFT
+  
+\foreach \idx/\label in {0/0,1/1,2/2,3/{\sfNsec-1}}
+{
+  % loudspeakers
+  \node[loudspeaker,below=0.5cm of wfs_out\idx, anchor=west,rotate=-90] 
+  (driving\idx) {};
+  \node[below=0.2cm of driving\idx, labelblock] 
+  {\scriptsize $\sfdriving[prefix=time][\sfpossec^{(\label)}, n]$};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Connections
+
+% allpass
+\draw[connect] (signal) -- (ap);
+\draw[connect] (ap) -- (branchap);
+% lowpass
+\draw[connect, dashed] (branchap) -| (lp);
+\draw[connect, dashed] (lp) |- (wfs);
+% delayline
+\draw[connect] (ap) -- (delayline);
+\draw[connect] (tau) -- (delayline);
+\draw (delayline) -- (branch1);
+
+\foreach \idx in {0,1,3}
+{
+  % filters
+  \draw[connect] (branch1) -| (filter\idx);
+  \draw[connect] (filter\idx) -- (mult_weight\idx);
+  % weights
+  \draw[connect] (weight\idx) -- (mult_weight\idx);
+  % add
+  \draw[connect] (mult_weight\idx) -- (add\idx);
+  \draw[connect] ($(sources.east) + (0,1*\yoffset) + (0,-\idx*\yoffset)$) -- 
+  (add\idx);
+  % windows
+  \draw[connect] (add\idx) -- (mult_window\idx);
+  \draw[connect] (window\idx) -- (mult_window\idx);
+  \draw[connect] (mult_window\idx) -- (ifft_in\idx);
+}
+% plane wave coefficients
+\foreach \idx/\label/\pos in 
+{0/0/above,1/1/above,2/2/above,3/3/above,4/{\sfN[subscript=pw]-1}/below}
+{
+  \draw[connect] (ifft_out\idx) -- node[\pos, pos=0.54, rotate=90] 
+  (pwd\idx)
+  {\scriptsize $\bar{\sfvirtualsource[prefix=time]}
+    [\sfcylphipw^{(\label)}, \sfposc, n]$} (wfs_in\idx);
+}
+
+% loudspeakers
+\foreach \idx in {0,1,2,3}
+{
+  \draw[connect] (wfs_out\idx) -- (driving\idx);
+}
+
+% dots
+\foreach \label in {ifft_in,add, filter}
+{
+  \path (\label 1) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+\foreach \label in {pwd}
+{
+  \path (\label 3) -- node[above,pos=0.5]{\Large$\hdots$} (\label 4);
+}
+\foreach \label in {driving}
+{
+  \path (\label 2) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+
+\end{tikzpicture}
+  
+\end{document}

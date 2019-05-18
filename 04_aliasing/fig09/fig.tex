@@ -1,0 +1,33 @@
+\begin{algorithmic}[1]
+  \Function{AliasingWFS}{$\sfregion, \sfpos$}
+    \State $\sffS[superscript=WFS] \gets \infty$
+    \For {$\sfpossec, \sfpossec' \gets \sfboundary$}
+      \Comment{%
+        \eqref{eq:aliasing_slp_convex}, 
+        densely sampled%
+      }
+      \If{$\sfselect_{\sfvirtualsource}(\sfpossec) = 0$}
+        \Comment \eqref{eq:aliasing_frequency}
+        \State \Continue 
+        \Comment next secondary sources
+      \EndIf
+      \State $\Delta_{\sfpossec} \gets \Delta_u |\sfpossec'|$
+      \State
+      $\displaystyle
+      \sff \gets
+        \frac{\sfspeedofsound}
+        {%
+        \Delta_{\sfpossec}
+        \big|
+        \sfknorm_{\sfgreens,\sftangentsec}(\sfpos-\sfpossec) -
+        \sfknorm_{\sfvirtualsource,\sftangentsec}(\sfpossec)
+        \big|
+        }
+      $
+      \Comment{\eqref{eq:aliasing_frequency_pair}}
+      \State $\sffS[superscript=WFS] \gets \min(\sffS[superscript=WFS]; \sff)$
+      \Comment{\eqref{eq:aliasing_frequency}}
+    \EndFor
+    \State \Return $\sffS[superscript=WFS]$
+  \EndFunction
+\end{algorithmic}

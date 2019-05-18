@@ -1,0 +1,80 @@
+% spectral repetitions of tangential components of local wavenumber vectors
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\usepackage{import}%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+\begin{tikzpicture}
+\pgfmathsetmacro{\xaxislength}{4.94*0.5}
+\pgfmathsetmacro{\yaxislength}{3.5}
+
+\pgfmathsetmacro{\kylength}{0.8*\yaxislength}
+\pgfmathsetmacro{\kGalpha}{60}
+\pgfmathsetmacro{\kGx}{\xaxislength*cos(\kGalpha)}
+\pgfmathsetmacro{\kGy}{\kylength}
+
+\pgfmathsetmacro{\deltak}{0.8}
+
+  
+\draw[-latex'] (-\xaxislength,0) -- (\xaxislength,0)
+  node[pos=0.95, below]{$\sfk_{\sftangentsec}$};
+
+\draw[-latex'] (0,0) -- (0,\yaxislength) node[at end, above]{$\sfwc$};
+
+\draw[thick,red,smooth,samples=20,domain=0.0:\kylength]
+  plot({-0.05*(exp(\x)-1)},\x);
+
+\foreach \eta in {-2,-1,1,2}
+{
+  \draw[thick,dashed,red,smooth,samples=20,domain=0.0:\kylength]
+    plot({\eta*\deltak-0.05*(exp(\x)-1)},\x);
+}
+
+\node[red] at (-1.0,\kylength+0.3) {\ft 
+  $\sfwc \sfknorm_{\sfvirtualsource,\sftangentsec}(\sfpossec,\sfomega)$};
+\node at (2*\deltak, -0.4) 
+  {\ft $\frac{4\pi \sfspeedofsound}{\Delta_{\sfpossec}}$};
+\node at (\deltak, -0.4) 
+  {\ft $\frac{2\pi\sfspeedofsound}{\Delta_{\sfpossec}}$};
+\node at (-\deltak, -0.4) 
+  {\ft $\frac{-2\pi\sfspeedofsound}{\Delta_{\sfpossec}}$};
+\node at (-2*\deltak, -0.4)
+  {\ft $\frac{-4\pi\sfspeedofsound}{\Delta_{\sfpossec}}$};
+
+\draw[thick,blue] (0,0) -- (\kGx,\kGy);
+\node[blue] at (1.0,\kylength+0.3)
+  {\ft $\sfwc \sfknorm_{\sfgreens,\sftangentsec}(\sfpos-\sfpossec)$};
+
+\draw[dashed] (0,0) -- (\xaxislength,\yaxislength)
+  node[pos=0.6, below, sloped]{\ft $\sfk_{\sftangentsec} = \sfwc$};
+\draw[dashed] (0,0) -- (-\xaxislength,\yaxislength)
+  node[pos=0.6, below, sloped]{\ft $\sfk_{\sftangentsec} = -\sfwc$};
+%
+\end{tikzpicture}
+\end{document}

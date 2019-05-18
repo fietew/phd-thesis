@@ -1,0 +1,4 @@
+
+# Surface 0 of 1 surfaces
+
+# Curve title: "sprintf('fM_M%d_rect.dat', M) u 1:2:($3/1000) binary matrix"

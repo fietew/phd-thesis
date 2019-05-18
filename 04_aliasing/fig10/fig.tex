@@ -1,0 +1,154 @@
+% estimation of the aliasing frequency of an extended area
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+  
+\def\dotMarkRightAngle[size=#1](#2,#3,#4){%
+  \draw ($(#3)!#1!(#2)$) -- 
+  ($($(#3)!#1!(#2)$)!#1!90:(#2)$) --
+  ($(#3)!#1!(#4)$);
+  \path (#3) --node[circle,fill,inner sep=.5pt]{} 
+  ($($(#3)!#1!(#2)$)!#1!90:(#2)$);
+}
+
+\begin{tikzpicture}
+\pgfmathsetmacro{\Rvec}{1.5}
+\pgfmathsetmacro{\Rdashed}{2.5}
+
+\pgfmathsetmacro{\Rls}{5.0}
+
+\pgfmathsetmacro{\Ru}{\Rls-0.1}
+
+\pgfmathsetmacro{\phider}{0}
+\pgfmathsetmacro{\Rder}{2.5}
+
+\pgfmathsetmacro{\phips}{-30}
+\pgfmathsetmacro{\Rps}{2}
+
+%\useasboundingbox[clip] (-0.75,-1.25) rectangle +(4.00,4.75);
+
+\begin{scope}[xshift=-1.75cm,yshift=0.5cm]
+  \fill[%
+    fill=black!30,%
+    mark coordinate=(Oltmp) at 0.65,
+    mark coordinate=(xmin) at 0.05,
+    mark coordinate=(xmax) at 0.353,
+    mark node=(nmin) at 0.05 with {%
+      sloped,%
+      minimum height=10pt,%
+      anchor=south west,%
+      inner sep=0cm,%
+      pos=0%
+    },
+    mark node=(nmax) at 0.353 with {%
+      sloped,%
+      minimum height=10pt,%
+      anchor=south west,%
+      inner sep=0cm,%
+      pos=0%
+    }
+    ]
+    plot [scale=3] file {fig.csv} -- cycle;
+  \node[below=0.1 of Oltmp] {$\sfregion[subscript=h]$};
+\end{scope}
+
+\path (xmin);\pgfgetlastxy{\Xmin}{\Ymin};
+\path (xmax);\pgfgetlastxy{\Xmax}{\Ymax};
+\pgfmathparse{atan2(\Ymin,\Xmin)}
+\edef\Alphamin{\pgfmathresult}
+\pgfmathparse{atan2(\Ymax,\Xmax)}
+\edef\Alphamax{\pgfmathresult}
+
+\draw[dashed] (0,0) -- (\Alphamin:\Rdashed);
+\draw[dashed] (0,0) -- (\Alphamax:\Rdashed);
+
+\coordinate[label={0:\color{red}$\sfkvecnorm^{\max}_{\sfgreens}$}] (kmax) at 
+(\Alphamax:\Rvec);
+\coordinate[label={180:\color{blue}$\sfkvecnorm^{\min}_{\sfgreens}$}] (kmin) at 
+(\Alphamin:\Rvec);
+
+\draw[-latex'] (nmin.south west) --(nmin.north west);
+\draw[-latex'] (nmax.south west) --(nmax.north west);
+
+\coordinate (origin) at (0,0);
+\dotMarkRightAngle[size=4pt](nmax.north west,xmax,origin);
+\dotMarkRightAngle[size=4pt](origin,xmin,nmin.north west);
+
+\draw[draw=black] ($(-65:\Rls)+(0,\Rls)$) arc (-65:-110:\Rls);
+\draw[draw=black,-latex'] ($(-70:\Ru)+(0,\Rls)$) arc (-70:-65:\Ru)
+  node[above, sloped, midway] {$u$};
+
+\foreach \phils in {-105,-100, -95, -85, -80, -75}
+{
+  \node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=\phils-180,
+  anchor=cone] at ($(\phils:\Rls)+(0,\Rls)$)  {};
+}
+
+\node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=90,
+  anchor=cone,
+  label={180:$\sfpossec$}] (ls) {};
+  
+\coordinate[label={-90:$\sftangentsec$}] (derivative) at (\phider:\Rder);
+\draw[-latex'] (0,0) -- (derivative);
+
+\coordinate[label={90:$\sfnormalsec$}] (nls) at (0,\Rder);
+\draw[-latex'] (0,0) -- (nls);
+  
+\coordinate (kmaxu) at ($(derivative)!(kmax)!(0,0)$);
+\coordinate (kmaxn) at ($(nls)!(kmax)!(0,0)$);
+
+\draw[draw=red, thick] (kmaxu) -- (0,0)
+  node[below=0.75cm, pos=0.25,anchor=south]  
+   {\color{red}$\sfknorm^{\max}_{\sfgreens,\sftangentsec}$};
+\draw[dashed] (kmaxu) -- (kmax);
+\draw[dashed] (kmaxn) -- (kmax);
+  
+\coordinate (kminu) at ($(derivative)!(kmin)!(0,0)$);
+\coordinate (kminn) at ($(nls)!(kmin)!(0,0)$);
+  
+\draw[draw=blue, thick] (kminu) -- (0,0)
+  node[below=0.75cm, pos=0.25,anchor=south] 
+   {\color{blue}$\sfknorm^{\min}_{\sfgreens,\sftangentsec}$};
+\draw[dashed] (kminu) -- (kmin);
+\draw[dashed] (kminn) -- (kmin);
+
+\draw[-latex',red, thick] (0,0) -- (kmax);
+\draw[-latex',blue, thick] (0,0) -- (kmin);
+%
+\end{tikzpicture}
+%
+\end{document}

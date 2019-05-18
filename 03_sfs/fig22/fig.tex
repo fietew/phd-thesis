@@ -1,0 +1,153 @@
+% block diagram for the implementation of LWFS-VSS
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\input{../../preamble/standalone}
+
+\begin{document}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Styles
+
+\tikzstyle{block} = [
+draw, 
+rectangle, 
+%minimum width=1.15cm, 
+minimum height=0.55cm, 
+inner sep=2pt
+]
+\tikzstyle{labelblock} = [
+rectangle, 
+%minimum width=1.15cm, 
+inner sep=0pt
+]
+\tikzstyle{op} = [draw, circle, minimum size=0.3cm, inner sep=0pt]
+\tikzstyle{branch} = [circle, fill=black, minimum size=1mm, inner sep=0pt, 
+node 
+distance = 1cm]
+\tikzstyle{connect} = [-latex, draw]
+\tikzstyle{dotted}= [dash pattern=on 0.0 mm off 1.0mm, line width 
+=0.5mm, line cap =round, shorten >= 2, shorten <=2]
+
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\xoffset}{0.20}
+\pgfmathsetmacro{\yoffset}{0.20}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes
+
+% Bounding Box
+\useasboundingbox (-1.75,-4.0) rectangle +(4.3cm,5.4cm);
+
+%% Central Node of wfs1
+\node[block, minimum width=4.5cm] (wfs1) {%
+  \shortstack{WFS Renderer}};
+
+%% Central Node for wfs2
+\node[block, minimum width=4.5cm, below=2cm of wfs1] (wfs2) {%
+  \shortstack{WFS Renderer}};
+
+% inputs of wfs1
+\foreach \idx/\ratio in {0/0.2, 1/0.5, 3/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}
+  \coordinate(wfs1_in\idx) at 
+    ($\ratio*(wfs1.north east) + \ratioinv*(wfs1.north west)$); 
+}
+% outputs of wfs1 and inputs of wfs2 renderer
+\foreach \idx/\ratio in {0/0.1, 1/0.3, 2/0.5, 3/0.7, 4/0.9}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}   
+  \coordinate(wfs1_out\idx) at 
+    ($\ratio*(wfs1.south east) + \ratioinv*(wfs1.south west)$);
+    
+  \coordinate(wfs2_in\idx) at 
+    ($\ratio*(wfs2.north east) + \ratioinv*(wfs2.north west)$);
+}
+% outputs of wfs2 renderer
+\foreach \idx/\ratio in {0/0.1, 1/0.375, 2/0.65, 3/0.93}
+{
+  \pgfmathsetmacro{\ratioinv}{1-\ratio}   
+  \coordinate(wfs2_out\idx) at 
+  ($\ratio*(wfs2.south east) + \ratioinv*(wfs2.south west)$);
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes above of wfs1
+
+% source signal
+\node[above=0.5cm of wfs1] (signal)
+  {$\tilde{\sfvirtualsource[prefix=time]}[n]$};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nodes below of wfs1
+  
+\foreach \idx/\label in {0/0,1/1,2/2,3/{\sfNsec-1}}
+{
+  % loudspeakers
+  \node[loudspeaker,below=0.5cm of wfs2_out\idx, anchor=west,rotate=-90] 
+  (driving\idx) {};
+  \node[below=0.2cm of driving\idx, labelblock] 
+  {\scriptsize $\sfdriving[prefix=time][\sfpossec^{(\label)}, n]$};
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Connections
+
+% signal
+\draw[connect] (signal) -- (wfs1);
+
+% plane wave coefficients
+\foreach \idx/\label/\pos in 
+{0/0/above,1/1/above,2/2/above,3/3/above,4/{\sfNlocal-1}/below}
+{
+  \draw[connect] (wfs1_out\idx) -- node[\pos, pos=0.5, rotate=90] 
+  (pwd\idx)
+  {\scriptsize $\sfdriving[prefix=time,superscript=WFS,subscript=twohalfD]
+    [\sfposlocal^{(\label)},n]$} (wfs2_in\idx);
+}
+
+% loudspeakers
+\foreach \idx in {0,1,2,3}
+{
+  \draw[connect] (wfs2_out\idx) -- (driving\idx);
+}
+
+% dots
+\foreach \label in {pwd}
+{
+  \path (\label 3) -- node[above,pos=0.5]{\Large$\hdots$} (\label 4);
+}
+\foreach \label in {driving}
+{
+  \path (\label 2) -- node[above,pos=0.5]{\Large$\hdots$} (\label 3);
+}
+
+\end{tikzpicture}
+  
+\end{document}

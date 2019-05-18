@@ -1,0 +1,71 @@
+% interior and exterior domain for spherical basis functions
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\tikzstyle{var} = [inner sep = 0]%
+\tikzstyle{density} = [shift={(0.2,0.2)}, rotate=25, yscale=3, xscale=1.5]%
+%
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{main,foreground}
+%
+\begin{document}
+%
+\begin{tikzpicture}
+% coordinates' origin
+\coordinate (origin) at (0,0);
+%
+\begin{pgfonlayer}{foreground}
+  % inhomogenity
+  \draw[fill=black!60,%
+    density,%
+    thick,%
+    mark coordinate=(ri) at 0.04,%  mark coordinate for interior radius
+    mark coordinate=(re) at 0.47,%  mark coordinate for exterior radius
+  ] plot file {fig.csv} -- cycle;
+  \node[var, above=0.8cm of ri] {\color{white}$\sfdensityP(\sfpos,\sfomega)$};
+\end{pgfonlayer}
+% background
+\path[fill=black!20] (-2.4,-2.4) rectangle (2.4,2.4);
+% circle around origin through
+\node[fill=white,draw,mark coordinate=(re_label) at 0.75] at (origin) 
+  [circle through={(re)}] {};
+\node[fill=black!20,draw,mark coordinate=(ri_label) at 0.5] at (origin) 
+  [circle through={(ri)}] {};
+% labels for radii
+\draw (origin) -- (re_label) node[right, pos=0.75]{$\sfsphr_{\mathrm e}$};
+\draw (origin) -- (ri_label) node[above, midway]{$\sfsphr_{\mathrm i}$};
+% labels for domains
+\node[var] at (0.3,-0.3) {$\sfset_{\mathrm i}$};
+\node[var] at (2,2) {$\sfset_{\mathrm e}$};
+% label for origin
+\node[var,anchor=south west] at (origin) {$\sforigin$};
+\end{tikzpicture}
+%
+\end{document}

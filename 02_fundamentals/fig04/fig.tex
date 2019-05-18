@@ -1,0 +1,57 @@
+% plate radiator and plane wave
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+
+\begin{tikzpicture}
+
+% wave propagation
+\foreach \idx in {0,1,2,3}
+{  
+  \draw[thick, blue!25!white] (-0.5*\idx-1.25,1.25) -- (-0.5*\idx-1.25,-1.25);
+  \draw[thick, red!25!white] (0.5*\idx-0.75,1.25) -- (0.5*\idx-0.75,-1.25);
+}
+\draw[-latex',thick,blue] (-1.5,-0.75) -- +(-1,0) 
+  node[below, midway]{$-\sfnormalpw$};
+\draw[-latex',thick,red] (-0.5,-0.75) -- +(1,0)
+  node[below, midway]{$\sfnormalpw$};
+% plate radiator
+\draw[very thick] (-1,1.5) -- (-1,-1.5)
+  node[at start, left, anchor=north east]{\shortstack{plate\\radiator}};
+% distance
+\draw[|-|] (-1,0) -- (0,0) node[above,midway]{$d$} 
+  node[below,at end]{$\sforigin$};
+% orientation
+\draw[-latex'] (-1,0.75) -- (-0.5,0.75) node[above,at end]{$\sfnormalpw$};
+
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,83 @@
+% Coordinate Representations
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{article}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+\usepackage{tikz-3dplot} %for tikz-3dplot functionality
+
+% generates a tightly fitting border around the work
+\usepackage[active,tightpage]{preview}  
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0mm}
+
+\begin{document}
+\tdplotsetmaincoords{60}{105}
+
+\pgfmathsetmacro{\rvec}{1.4}
+\pgfmathsetmacro{\thetavec}{50}
+\pgfmathsetmacro{\phivec}{50}
+%
+\begin{tikzpicture}[scale=3,tdplot_main_coords]
+
+
+% coordinates origin
+\coordinate (O) at (0,0,0);
+
+% point
+\tdplotsetcoord{P}{\rvec}{\thetavec}{\phivec}
+
+% coordinate axes
+\draw[-latex] (0,0,0) -- (1,0,0) node[anchor=north east]{$\sfx$};
+\draw[-latex] (0,0,0) -- (0,1,0) node[anchor=north west]{$\sfy$};
+\draw[-latex] (0,0,0) -- (0,0,1) node[anchor=south]{$\sfz$};
+
+% unit vector for Cartesian coordinates
+\draw[thick, -latex] (0,0,0) -- (0.3,0,0) node[anchor=east]{$\sfunitx$};
+\draw[thick, -latex] (0,0,0) -- (0,0.3,0) node[anchor=south]{$\sfunity$};
+\draw[thick, -latex] (0,0,0) -- (0,0,0.3) node[anchor=east]{$\sfunitz$};
+
+% draw a vector from origin to point (P) 
+\draw[-latex,color=rostock-uni,thick] (O) -- node[pos=0.75,below]{$\sfsphr$} (P)
+  node[at end, right]{$\sfpos$};
+
+%draw projection on xy plane and coordinatex axis
+\draw[color=rostock-uni,thick,-latex] (O) -- node[midway,below]{$\sfcylr$}(Pxy);
+\draw[dashed] (P) -- (Pxy);
+\draw[dashed] (Px) -- (Pxy) -- (Py);
+\draw[dashed] (P) -- (Pz);
+
+% draw azimuth angle
+\tdplotdrawarc[color=rostock-uni,thick,-latex]{(O)}{0.4}{0}{\phivec}{anchor=north}{$\sfsphphi$}
+
+% draw polar angle
+\tdplotsetthetaplanecoords{\phivec}
+\tdplotdrawarc[tdplot_rotated_coords,color=rostock-uni,thick,-latex]%
+  {(0,0,0)}{0.5}{0}{\thetavec}{anchor=south west}{$\sfsphtheta$}
+
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,81 @@
+% basic principle and coordinate frame for binaural synthesis
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}%
+%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+%
+\tikzstyle{source} = [draw, fill=black, circle, minimum size=2mm, inner 
+sep=0pt]%
+\tikzstyle{hrtf_left} = [color=red!50!black, thick, -latex, bend right=90]%
+\tikzstyle{hrtf_right} = [color=red!50!black, thick, -latex, bend left=60]%
+%
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\alphahead}{30}
+\pgfmathsetmacro{\alphaear}{8}
+\pgfmathsetmacro{\Rcoord}{1.4}
+\pgfmathsetmacro{\Rear}{0.25}
+
+% head
+\coordinate (head) at (1.0,1.0);
+\node[rotate=\alphahead] (headnode) at (head)
+  {\includegraphics[scale=0.125]{head}};
+\coordinate (leftear) at ($(headnode) + (\alphahead+90+8:\Rear)$);
+\coordinate (rightear) at ($(headnode) + (\alphahead-90-8:\Rear)$);
+
+% 
+\draw[dashed] (head) -- +(0:\Rcoord);
+\draw[-latex] ($(head) + (0:0.8*\Rcoord)$) 
+  arc (0:\alphahead:0.8*\Rcoord) node[pos=0.6,right]{$\sfcylphih$};
+
+% head coordinate system
+\draw[-latex] (head) -- +(\alphahead:\Rcoord) 
+  node[at end, right, sloped]{$\sfx[superscript=shift]$};
+\draw[-latex] (head) -- +(\alphahead+90:\Rcoord)
+  node[at end, left, sloped, rotate=90]{$\sfy[superscript=shift]$};
+  
+% world coordinate system
+\draw[-latex] (0,0) -- +(\Rcoord,0) node[at end, below]{$\sfx$};
+\draw[-latex] (0,0) -- +(0,\Rcoord) node[at end, left]{$\sfy$};
+
+% point source
+\node[source, thick] (ps) at (3,3) {};
+\node[right=0.1cm of ps] {$\sfposs[superscript=shift]$};
+\draw[thick, latex-] (ps) -- +(90:0.5) node[at end, right]{$
+\sfvirtualsource[prefix=ft](\sfomega)$};
+\draw[-latex] (head) -- (ps);
+
+%% HRTFs
+\draw[hrtf_left, midway, above left] (ps) edge[in=-90] 
+  node[pos=0.25] {$\sfhrtfleft(\sfposs[superscript=shift],\sfomega)$} (leftear);
+\draw[hrtf_right, midway, below right ] (ps) edge[in=90]
+  node {$\sfhrtfright(\sfposs[superscript=shift],\sfomega)$} (rightear);
+\end{tikzpicture}
+%
+\end{document}

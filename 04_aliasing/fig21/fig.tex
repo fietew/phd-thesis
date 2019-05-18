@@ -1,0 +1,53 @@
+\begin{algorithmic}[1]
+  \Function{AliasingExtendedNFCHOA}{$\sfregion, \sfregion[subscript=h], M$}
+    \State $\sffS[superscript=NFCHOA]_{\sfregion[subscript=h]} \gets \infty$
+    \For {$\sfpossec, \sfpossec' \gets \sfcontour$}
+      \Comment \eqref{eq:aliasing_slp_convex}, densely sampled
+      \If{$\sfselect_{\sfvirtualsource}(\sfpossec) = 0$}
+        \Comment \eqref{eq:aliasing_nfchoa_frequency}
+        \State \Continue 
+        \Comment next secondary sources
+      \EndIf
+      \State $\Delta_{\sfpossec} \gets \Delta_u |\sfpossec'|$
+      \State
+        $ \sfknorm^{\min}_{\sfgreens,\sftangentsec},
+          \sfknorm^{\max}_{\sfgreens,\sftangentsec}
+          \gets 
+          \Call{MinMaxWavenumber}{\sfregion[subscript=h],\sfpossec}
+        $
+      \State
+      $\displaystyle
+      \sff \gets
+        \frac{\sfspeedofsound}
+        {%
+        \Delta_{\sfpossec}
+        \max\left(
+        \big|
+        \sfknorm^{\min}_{\sfgreens,\sftangentsec} -
+        \sfknorm_{\sfvirtualsource,\sftangentsec}(\sfpossec)
+        \big|
+        ;
+        \big|
+          \sfknorm^{\max}_{\sfgreens,\sftangentsec} -
+          \sfknorm_{\sfvirtualsource,\sftangentsec}(\sfpossec)
+        \big|
+        \right)
+        }
+      $
+      \State
+      $\displaystyle
+      \sffB_M \gets 
+        \frac{M \sfspeedofsound}
+        {2\pi |\sfpossec \times \sfkvecnorm_{\sfvirtualsource}(\sfpossec)|}
+      $
+      \Comment \eqref{eq:aliasing_nfchoa_fM_sec}
+      \If{$\sff \leq \sffB_M$}
+        \Comment \eqref{eq:aliasing_nfchoa_frequency_sec}
+        \State $\sffS[superscript=NFCHOA]_{\sfregion[subscript=h]}  \gets  
+          \min(\sffS[superscript=NFCHOA]_{\sfregion[subscript=h]}; f)$
+        \Comment{\eqref{eq:aliasing_nfchoa_frequency}}
+      \EndIf
+    \EndFor
+    \State \Return $\sffS[superscript=NFCHOA]_{\sfregion[subscript=h]}$
+  \EndFunction
+\end{algorithmic}

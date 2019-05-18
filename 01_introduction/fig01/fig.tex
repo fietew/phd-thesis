@@ -1,0 +1,108 @@
+% stereo, sound field synthesis, and local sound field synthesis
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+%
+\tikzstyle{loudspeaker} = [basic loudspeaker%
+, draw
+, minimum height=1mm     % height of the rectangle ("driver") part 
+, minimum width=0.5mm      % width of the rectangle
+, inner sep=0pt
+, relative cone width=1    % height of trapezoid ("cone") part, relative to 
+                           % minimum width (default: 1)
+, relative cone height=2   % width of trapezoid, relative to minimum height 
+                           % (default: 2)
+, fill=activecolor
+]%
+\tikzstyle{sweetspot} = [draw=rostock-uni, fill=rostock-uni!50]%
+%
+\begin{tikzpicture}%
+\pgfmathsetmacro{\scale}{1.65}
+\pgfmathsetmacro{\R}{1.5}
+\pgfmathsetmacro{\deltax}{1.2*\scale*2*\R}
+\pgfmathsetmacro{\DeltaPhi}{360/30}
+\pgfmathsetmacro{\labely}{1.2*\R*\scale}
+% parameters for sweetspot
+\pgfmathsetmacro{\parawidth}{0.2*\scale*\R}
+\pgfmathsetmacro{\paraheight}{0.8*\scale*\R}
+\pgfmathsetmacro{\parascale}{\paraheight/(\parawidth*\parawidth)}
+\pgfmathsetmacro{\pararange}{sqrt((\paraheight+0.95*\scale*\R)/\parascale)}
+\pgfmathsetmacro{\paralabelx}{0.9*\pararange}
+\pgfmathsetmacro{\paralabely}{\paraheight-\parascale*\paralabelx*\paralabelx}
+% shifted 
+\pgfmathsetmacro{\deltatrans}{0.55*1.2*\scale*\R}
+\pgfmathsetmacro{\headscale}{0.1*\scale}
+%% labels
+\node at (0,\labely) {\ft (a) Stereophony};
+\node at (\deltax,\labely) {\ft (b) Sound Field Synthesis};
+\node at (2*\deltax,\labely) {\ft (c) Local Sound Field Synthesis};
+%
+%% sweet spot for stereophony
+\draw[sweetspot] plot[smooth,domain=-\pararange:\pararange] 
+  (\x, {\paraheight-\parascale*\x*\x});
+\node[anchor=south west] at (\paralabelx,\paralabely) {\ft sweet spot};
+%% target area of SFS
+\draw[sweetspot] (\deltax,0) circle (0.95*\scale*\R);
+%% target area of LSFS
+\draw[sweetspot] (2*\deltax,0) circle (0.3*\scale*\R);
+\foreach \phil in {0, 90, 180, 270} {
+  \coordinate (centre) at ($(2*\deltax,0)+(\phil:\deltatrans)$);
+  \draw[draw=rostock-uni!50, fill=rostock-uni!25] (centre) circle 
+  (0.3*\scale*\R);
+}
+
+%% stereo setup
+\node[loudspeaker, anchor=cone, rotate=-60, scale=\scale] at
+(30+90:\R*\scale) {};
+\node[loudspeaker, anchor=cone, rotate=-120, scale=\scale] at
+(-30+90:\R*\scale) {};
+%% loudspeaker array
+\foreach \idx in {1, 2} {  
+  \foreach \phi in {0,\DeltaPhi, ...,360} {
+    \draw node (speaker\phi) at ($(\idx*\deltax,0)+(\phi:\scale*\R)$)
+    [loudspeaker, anchor=cone, rotate=\phi-180, scale=\scale]{};
+  }
+}
+
+%% listener
+\foreach \phil in {0, 90, 180, 270} {
+  \coordinate (centre) at ($(2*\deltax,0)+(\phil:\deltatrans)$);
+  \node[rotate=90, inner sep=0] at (centre)
+    {\includegraphics[scale=\headscale]{head}};
+  \draw[very thick, sweetspot, <-] (centre) -- +(\phil:-\deltatrans);
+}
+\foreach \idx in {0, 1, 2} {
+  \coordinate (centre) at (\idx*\deltax,0);
+  \node[rotate=90, inner sep=0] at (centre) 
+    {\includegraphics[scale=\headscale]{head}};
+}
+\end{tikzpicture}
+%
+\end{document}

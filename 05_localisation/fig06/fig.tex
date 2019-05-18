@@ -1,0 +1,92 @@
+% exaggeratedly missplaced laser pointer
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+%
+\input{../../preamble/standalone}%
+%
+\begin{document}
+%
+\tikzstyle{loudspeaker} = [basic loudspeaker, draw, fill=white
+, minimum height=0.8mm 	    % height of the rectangle ("driver") part 
+, minimum width=0.4mm		    % width of the rectangle
+, inner sep=0pt
+, relative cone width=1	% height of trapezoid ("cone") part, relative 
+%to minimum width (default: 1)
+, relative cone height=2	    % width of trapezoid, relative to minimum 
+%height (default: 2)
+]%
+%
+\tikzstyle{active} = [fill=black!50]%
+\tikzstyle{curtain} = [thick]%
+%
+\renewcommand\normalsize{\footnotesize}
+\begin{tikzpicture}[scale=1.4]
+
+\pgfmathsetmacro{\Dist}{1.5}
+\pgfmathsetmacro{\Doff}{0.1}
+\pgfmathsetmacro{\DeltaY}{0.15}
+\pgfmathsetmacro{\Dangle}{0.7*(\Dist-\Doff)}
+
+%% loudspeakers
+% symbols
+\foreach \idx in {-9, -8, -6, -3, -2, 0, 1, 2, 4, 7, 9} {
+  \node[loudspeaker, active, rotate=180, left, transform shape] 
+    (speaker\idx) at (\Dist,\DeltaY*\idx) {};
+};
+\foreach \idx in {-7, -5, -4, -1, 3, 5, 6, 8} {
+  \node[loudspeaker, rotate=180, left, transform shape] 
+  (speaker\idx) at (\Dist,\DeltaY*\idx) {};
+};
+% azimuths
+% \draw[dashed] (0,0) -- (\Dist-\Doff, 0);
+% \draw[dashed] (0,0) -- (speaker8.east);
+% \draw[-\latex'] (\Dangle, 0) arc (
+% distance between loudspeakers
+\draw[|-|] ($(speaker9.west)+(\Doff,0)$) -- +(0,-\DeltaY)
+  node[midway, above=0.1cm, sloped] {$0.15\,\mathrm{m}$};
+% label
+\node[rotate=-90, anchor=south] at (speaker-2.west) {virtual loudspeakers};
+
+
+%% 2012 curtain
+\draw[curtain] (\Dist-\Doff, \DeltaY*11) -- +(0, -2*\DeltaY*11)
+  node[above left, at end, inner sep=0, anchor=east]{curtain (Wierstorf)};
+% distance 
+\draw[dashed] (0,0) -- (0, \DeltaY*11);
+\draw[latex'-latex'] (0, \Dist+0.5*\Doff) -- +(\Dist-\Doff, 0)
+  node[thick, fill=white, midway] {$\approx 1.5\,\mathrm{m}$};
+  
+%% 2017 curtain
+\draw[curtain] (\Dist-\Doff, 0) arc (0:360:\Dist-\Doff)
+  node[above=0.3, pos=0.75]{curtain (current)};;
+
+%% head
+\node[transform shape] at (0,0) {\includegraphics[height=0.75cm]{head}};
+
+\end{tikzpicture}
+%
+\end{document}

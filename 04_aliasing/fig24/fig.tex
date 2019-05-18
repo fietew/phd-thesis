@@ -1,0 +1,145 @@
+% geometry for discrete plane wave decomposition in LWFS-SBL
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+  
+  \begin{tikzpicture}
+  
+  \pgfmathsetmacro{\Rvec}{1.6}
+  
+  \pgfmathsetmacro{\Rls}{5.0}
+  \pgfmathsetmacro{\phils}{-90}
+  
+  \pgfmathsetmacro{\Ru}{\Rls-0.1}
+  
+  \pgfmathsetmacro{\phider}{0}
+  \pgfmathsetmacro{\Rder}{2.2}
+  
+  \pgfmathsetmacro{\phiS}{155}
+  \pgfmathsetmacro{\RS}{1.2}
+  
+  \pgfmathsetmacro{\phips}{-63.5}
+  \pgfmathsetmacro{\Rps}{2.5}
+  
+  \pgfmathsetmacro{\phi}{65}
+  \pgfmathsetmacro{\R}{2.5}
+  
+  \coordinate (origin) at (0,0) {};
+  
+  \draw[thick, draw=black] ($(-65:\Rls)+(0,\Rls)$) arc (-65:-110:\Rls);
+  
+  \draw[draw=black,-latex'] ($(-70:\Ru)+(0,\Rls)$) arc (-70:-65:\Ru)
+  node[above, sloped, midway] {$u$};
+  
+  \foreach \phils in {-105, -97, -84, -79, -75, -72, -70}
+  {
+    \node[loudspeaker,
+    fill=activecolor,
+    transform shape,
+    rotate=\phils-180,
+    anchor=cone] at ($(\phils:\Rls)+(0,\Rls)$)  {};
+  }
+  
+  \node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=90,
+  anchor=cone,
+  label={180:$\sfpossec$}] (ls) {};
+  
+  %% sound field
+  \node[circle, fill=black!50,inner sep=2pt] (source) at (\phips:\Rps) 
+  {};
+  \node[right=-0.1cm of source] {$\sfvirtualsource(\sfpos,\sfomega)$};
+  % draw "sound waves"
+  \foreach \Rwaves in {0.3, 0.6, 0.9}
+  {
+    \draw[draw=black!50] ($(source)+(\phips+150:\Rwaves)$) arc 
+    (\phips+150:\phips+240:\Rwaves);
+  }
+  \draw[dashed] (0,0) -- (source);
+  
+  \coordinate[label={90:$\sfkvecnormS(\sfpossec,\sfomega)$}] 
+    (kP) at (\phips:-\Rvec);
+  \draw[-latex'] (0,0) -- (kP);
+  
+  \coordinate(kPS) at (\phiS:\Rvec);
+  \draw[-latex'] (0,0) -- (kPS);
+  \node[above=-0.1cm of kPS, inner sep=0pt]
+    {$\sfkvecnorm_{\sfvirtualsource[superscript=sampled,
+      subscript=zeta]}(\sfpossec,\sfomega)$};
+  \coordinate (derivative) at (\phider:\Rder);
+  \coordinate (nls) at (\phils:-\Rder);
+  
+  %%
+  \coordinate[circle,%
+    fill=black,%
+    inner sep=1pt,%
+    label={-90:$\sfpos[superscript=sampled, subscript=zeta]$}%
+  ] (postmp) at ($(source) + (\phiS:\RS)$) {};
+  \draw[dashed] (postmp) -- (source);
+  \coordinate (kStmp) at ($(postmp) + (\phiS:\Rvec)$);
+  \node[below=8pt of kStmp, inner sep=0pt] {%
+    $\sfkvecnormS(\sfpos[superscript=sampled, subscript=zeta],\sfomega)$
+  };
+  
+  \coordinate (proj) at ($(postmp)!(0,0)!(source)$) {};
+  \draw[thick,red] (proj) -- (0,0)
+    node[above,sloped,midway]{%
+      \footnotesize $\sfzeta\frac{\sfNpw \sfspeedofsound}{\sfomega}$
+    };
+  \dotMarkRightAngle[size=4pt](source,proj,origin);
+  \dotMarkRightAngle[size=4pt](kPS,origin,proj);
+  
+  \draw[-latex'] (postmp) -- (kStmp); 
+ 
+  %% point of evaluation
+  \coordinate[circle, 
+  fill=black,
+  inner sep=1pt,
+  label={90:$\sfpos$}] (pos) at (\phi:\R) {};
+  \draw[dashed] (0,0) -- (pos.center);
+  
+  \coordinate[label={0:$\sfkvecnormG(\sfpos-\sfpossec)$}] (kG) 
+  at 
+  (\phi:\Rvec);
+  \draw[-latex'] (0,0) -- (kG);
+  %
+  \coordinate[label={-90:$\sftangentsec$}] (derivative) at 
+  (\phider:\Rder);
+  \draw[-latex'] (0,0) -- (derivative);
+  
+  \coordinate[label={90:$\sfnormalsec$}] (nls) at (0,\Rder);
+  \draw[-latex'] (0,0) -- (nls);
+  %
+  \end{tikzpicture}
+  %
+\end{document}

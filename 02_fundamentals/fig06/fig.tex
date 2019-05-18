@@ -1,0 +1,101 @@
+% source density and bounded region
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\tikzstyle{var} = [%
+  inner sep = 0
+]
+%
+\tikzstyle{density} = [%
+  shift={(-0.5cm,0.75 cm)}, 
+  rotate=-40,
+  yscale=4,
+  xscale=2,
+]
+\pgfdeclarelayer{dens} % layer for source density
+\pgfsetlayers{main,dens} %
+%
+\begin{document}
+%
+\begin{tikzpicture}
+%
+% region and boundary
+\draw[draw=black!80,%
+  fill=black!20,
+  thick,%
+  mark coordinate=(d0tmp) at 0.45,
+  mark coordinate=(Otmp) at 3/20,
+  mark node=(normaltmp) at 0.6 with {%
+    sloped,%
+    minimum height=0.3cm,%
+    anchor=south west,%
+    inner sep=0cm,%
+    pos=0%
+  }
+  ]
+  plot[scale=4.5] file {fig.csv} -- cycle;
+% origin
+\node[var, anchor=north west] (origin) at (4,0.25) {$\sforigin$};
+% inhomogenity
+\draw[fill=black!60, density]
+  plot file {fig.csv} -- cycle;
+\node[var] at (1.1,1.4) {\color{white}$\sfdensityP(\sfpos,\sfomega)$};
+%
+\begin{pgfonlayer}{dens}
+\clip[density,
+  mark coordinate=(xstmp) at 0.3,
+  ] 
+  plot file {fig.csv} -- cycle;
+\draw[draw=white, thick]
+  plot[scale=4.5] file {fig.csv} -- cycle;
+  % xs
+  \coordinate[above=0.6cm of xstmp] (xs);
+  \draw[-latex', white] (origin.north west) -- node[below,pos=0.9]{$\sfposs$} 
+    (xs);
+\end{pgfonlayer}
+% xs
+\draw[-latex'] (origin.north west) -- (xs);
+% regions and the boundary
+\node[var, above=1.2cm of Otmp] {$\sfset$};
+\node[var] at (4.2,0.75) {$\bar\sfset$};
+\node[var, below=0.4cm of d0tmp] (dO) {$\sfboundary$};
+\draw[-latex'] (dO) to[out=120,in=-120] (d0tmp);
+% x
+\coordinate[above=0.8cm of Otmp] (pos);
+\draw[-latex'] (origin.north west) -- node[above,pos=0.75]{$\sfpos$} (pos);
+% x0 and surface normal n0
+\draw[-latex'] (origin.north west) -- node[right,pos=0.75]{$\sfpossec$} 
+  (normaltmp.south west);
+\draw[-latex'] (normaltmp.south west) --
+  node[below, at end] {$\sfnormalsec$} (normaltmp.north west);
+%
+\end{tikzpicture}
+%
+\end{document}

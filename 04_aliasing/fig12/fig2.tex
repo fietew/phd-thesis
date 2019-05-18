@@ -1,0 +1,127 @@
+% minimum and maximum wavenumber vector for circular region -- case 2
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+
+\begin{tikzpicture}
+\pgfmathsetmacro{\Rvec}{1.0}
+\pgfmathsetmacro{\Rdashed}{2.5}
+
+\pgfmathsetmacro{\Rls}{5.0}
+
+\pgfmathsetmacro{\Ru}{\Rls-0.1}
+
+\pgfmathsetmacro{\phider}{0}
+\pgfmathsetmacro{\Rder}{2.0}
+
+
+\pgfmathsetmacro{\phips}{-30}
+\pgfmathsetmacro{\Rps}{2}
+
+\pgfmathsetmacro{\rl}{1.4}
+\pgfmathsetmacro{\Rl}{0.85}
+\pgfmathsetmacro{\phil}{30}
+
+\pgfmathsetmacro{\Rmax}{sqrt(\rl*\rl - \Rl*\Rl)}
+\pgfmathsetmacro{\phimin}{\phil+asin(\Rl/\rl)}
+\pgfmathsetmacro{\phimax}{0}
+
+\coordinate (origin) at (0,0);
+
+\fill[fill=black!30] (\phil:\rl) circle (\Rl);
+\coordinate (center) at (\phil:\rl);
+\node[circle, fill=black, inner sep=1pt, label={90:$\sfpos[subscript=h]$}] 
+  at (center) {};
+
+\node[above right=0.25cm of center]{$\sfcircle[subscript=h]$};
+
+\draw[dashed] (0,0) -- (\phimin:\Rdashed);
+
+\coordinate (xmin) at (\phimin:\Rmax);
+\coordinate (xmax) at (\phimax:\Rmax);
+
+\coordinate (kmax) at (\phimax:\Rvec);
+\coordinate (kmin) at (\phimin:\Rvec);
+
+\draw(center) -- (xmin) node[midway,below=-3pt,sloped]{\footnotesize $
+\sfR[subscript=h]$};
+
+\dotMarkRightAngle[size=4pt](origin,xmin,center);
+
+\draw[draw=black] ($(-70:\Rls)+(0,\Rls)$) arc (-70:-110:\Rls);
+\draw[draw=black,-latex'] ($(-75:\Ru)+(0,\Rls)$) arc (-75:-70:\Ru)
+node[above, sloped, midway] {$u$};
+
+\foreach \phils in {-105, -100, -95, -85, -80, -75}
+{
+  \node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=\phils-180,
+  anchor=cone] at ($(\phils:\Rls)+(0,\Rls)$)  {};
+}
+
+\node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=90,
+  anchor=cone,
+  label={180:$\sfpossec$}] (ls) {};
+
+\coordinate[label={-90:$\sftangentsec$}] (derivative) at (\phider:\Rder);
+\draw[-latex'] (0,0) -- (derivative);
+
+\coordinate[label={90:$\sfnormalsec$}] (nls) at (0,\Rder);
+\draw[-latex'] (0,0) -- (nls);
+
+\coordinate (kmaxu) at ($(derivative)!(kmax)!(0,0)$);
+
+\draw[draw=red, thick] (kmaxu) -- (0,0)
+node[below=0.75cm, pos=0.25,anchor=south]  
+{\color{red}$\sfknorm^{\max}_{\sfgreens,\sftangentsec}$};
+\draw[dashed] (kmaxu) -- (kmax);
+
+\coordinate (kminu) at ($(derivative)!(kmin)!(0,0)$);
+\coordinate (kmint) at ($(nls)!(kmin)!(0,0)$);
+
+%\draw[red, thick] (0,0) -- (kmax);
+%
+\draw[draw=blue, thick] (kmint) -- (kmin) node[above=0.75cm, 
+pos=0,anchor=north] {\color{blue}$\sfknorm^{\min}_{\sfgreens,\sftangentsec}$};
+
+\draw[dashed] (kminu) -- (kmin);
+
+
+\draw[-latex',blue, thick] (origin) -- (kmin);
+%
+\end{tikzpicture}
+%
+\end{document}

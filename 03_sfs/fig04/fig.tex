@@ -1,0 +1,196 @@
+% sketch for 2.5D synthesis
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{article}
+
+\input{../../preamble/standalone}
+\usepackage{tikz-3dplot} %for tikz-3dplot functionality
+
+% generates a tightly fitting border around the work
+\usepackage[active,tightpage]{preview}  
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{0mm}
+
+\sfrenewsymbol{cylphi}{\alpha}
+\sfrenewsymbol{sphphi}{\alpha}
+\sfrenewsymbol{sphtheta}{\beta}
+
+\usetikzlibrary{fadings}
+
+\begin{document}
+\tdplotsetmaincoords{70}{70}
+
+\pgfdeclarelayer{bottom}
+\pgfdeclarelayer{top}
+\pgfsetlayers{bottom,main,top} 
+%
+
+\pgfmathsetmacro{\projleft}{0.055}
+\pgfmathsetmacro{\projright}{0.51}
+\pgfmathsetmacro{\xo}{0.65}
+\pgfmathsetmacro{\plotscale}{4.5}
+
+
+\tikzstyle{fade} = [draw=none, fill=none,left color=black!80, right 
+color=black!20]
+\tikzstyle{plane} = [draw=none, fill=black!10]
+\tikzstyle{plane fade} = [draw = none, fill=none, left color=black!70, right 
+color=black!10]
+
+\begin{tikzpicture}[tdplot_main_coords,inner sep = 2pt]
+
+% coordinates origin
+\coordinate (origin) at (-0.25,-0.5,0);
+
+\draw[fill=black!30] (origin) -- +(5,0,0) -- +(5,3.25,0) -- +(0,3.25,0) -- 
+cycle;
+
+% coordinate axes
+\draw[thick, -latex] (origin) -- +(1,0,0) node[anchor=north east]{$\sfx$};
+\draw[thick, -latex] (origin) -- +(0,1,0) node[anchor=south]{$\sfy$};
+\draw[thick, -latex] (origin) -- +(0,0,1) node[anchor=south]{$\sfz$};
+
+\draw[fill=white,
+draw=black,%
+thick,%
+mark coordinate=(proj_left) at \projleft,
+mark coordinate=(proj_right) at \projright,
+mark coordinate=(x0) at \xo,
+mark coordinate=(boundary) at 0.25,
+]
+plot[scale=\plotscale] file {fig.csv} -- cycle;
+%
+
+% labels
+\node[below left=2pt of boundary, inner sep=0] (boundary_label) {$\sfcontour$};
+% \draw[-latex'] (boundary_label) to[out=-45,in=-135] (boundary);
+
+% bottom layer
+\coordinate (Shift) at (0,0,-1.75);
+\coordinate (proj_left_bottom) at ($(proj_left)+(Shift)$);
+\coordinate (proj_right_bottom) at ($(proj_right)+(Shift)$);
+
+\begin{pgfonlayer}{bottom}
+  \tdplotsetrotatedcoordsorigin{(Shift)}
+  
+  \draw[fade]
+    (proj_right_bottom) --
+    (proj_left_bottom) --
+    (proj_left) --
+    (proj_right) -- 
+    cycle;
+
+  \begin{scope}
+    \clip (proj_right_bottom) --
+      (proj_left_bottom) --
+      (proj_left) --
+      (proj_right) -- 
+      cycle;
+    
+    \draw[densely dotted, tdplot_rotated_coords]
+      plot[scale=\plotscale] file {fig.csv} -- cycle;
+  \end{scope}
+  
+  \begin{scope}
+    \begin{pgfinterruptboundingbox}
+      \clip (proj_right_bottom) --
+      (proj_left_bottom) --
+      ($(proj_left_bottom)+(0,0,-10)$) -- 
+      ($(proj_right_bottom)+(0,0,-10)$) -- 
+      cycle;
+    \end{pgfinterruptboundingbox}
+    
+    \draw[fade, tdplot_rotated_coords]
+      plot[scale=\plotscale] file {fig.csv} -- cycle;
+    \draw[tdplot_rotated_coords]
+      plot[scale=\plotscale] file {fig.csv} -- cycle;
+  \end{scope}
+    
+  \draw (proj_left) -- (proj_left_bottom);
+  \draw (proj_right) -- (proj_right_bottom) node[midway,right]{$\sfboundary$};
+  \draw[densely dotted] (x0) -- +(Shift); 
+  %\clip (proj_left) -- plot[scale=\plotscale] file {fig.csv} -- cycle;
+  %\draw plot[scale=\plotscale] file {fig.csv} -- cycle;
+  
+  \draw[plane fade, tdplot_rotated_coords]
+    plot[scale=\plotscale] file {fig.csv} -- cycle;
+  
+  \node at ($(2.5,1,0)+(Shift)$) {$\sfset$};
+\end{pgfonlayer}
+
+% top layer
+\coordinate (Shift) at (0,0,1.75);
+\coordinate (proj_left_top) at ($(proj_left)+(Shift)$);
+\coordinate (proj_right_top) at ($(proj_right)+(Shift)$);
+
+\begin{pgfonlayer}{top}
+  \draw[fade]
+    (proj_right_top) --
+    (proj_left_top) --
+    (proj_left) --
+    (proj_right) -- 
+    cycle;
+
+  \begin{scope}
+    \begin{pgfinterruptboundingbox}
+      \clip (proj_right) --
+      (proj_left) --
+      ($(proj_left)+(0,0,+10)$) -- 
+      ($(proj_right)+(0,0,+10)$) -- 
+      cycle;
+    \end{pgfinterruptboundingbox}
+    \draw[draw=black, densely dotted]
+      plot[scale=\plotscale] file {fig.csv} -- cycle;
+  \end{scope}
+
+  \tdplotsetrotatedcoordsorigin{(Shift)}
+  \draw[plane, draw=black, tdplot_rotated_coords]
+    plot[scale=\plotscale] file {fig.csv} -- cycle;
+  
+  \draw (proj_left) -- (proj_left_top);
+  \draw (proj_right) -- (proj_right_top);
+  
+  \draw[plane fade]
+    plot[scale=\plotscale] file {fig.csv} -- cycle;
+    
+  \draw[densely dotted] (x0) -- +(Shift); 
+  
+  \begin{scope}
+    \clip plot[scale=\plotscale] file {fig.csv} -- cycle;
+    \draw[densely dotted] (x0) -- +($(0,0,0)-(Shift)$);
+  \end{scope}
+    
+  \node[fill=black, circle, inner sep=1pt] (x) at (1,1,0) {};
+  \node[right=2pt of x, inner sep=0] {$\sfpos$};
+  
+  \node[fill=black, circle, inner sep=1pt] (x0_point) at (x0) {};
+  \node[below left=2pt of x0_point, inner sep=0] {$\sfpossec$};
+  
+  \node at (2.5,1,0)  {$\sfregion$};
+\end{pgfonlayer}
+
+\end{tikzpicture}
+\end{document}

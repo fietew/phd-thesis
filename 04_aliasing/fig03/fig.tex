@@ -1,0 +1,95 @@
+% geometry for continuous linear SSD
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+%
+\begin{tikzpicture}
+\pgfmathsetmacro{\Rvec}{1.25}
+
+\pgfmathsetmacro{\Rls}{6.0}
+\pgfmathsetmacro{\phils}{-90}
+
+\pgfmathsetmacro{\phider}{\phils+90}
+\pgfmathsetmacro{\Rder}{2.0}
+
+\pgfmathsetmacro{\phips}{-45}
+\pgfmathsetmacro{\Rps}{2}
+
+\pgfmathsetmacro{\phi}{55}
+\pgfmathsetmacro{\R}{2.0}
+
+%\draw[draw=black,-latex'] ($(60:\Rls)-(\phils:\Rls)$) arc (60:70:1.02*\Rls)
+%  node[above, sloped, midway] {$u$};
+
+\coordinate[label={-90:$x$}] (derivative) at (\phider:\Rder);
+\draw[-latex'] (-2.0,0) -- (derivative);
+
+\coordinate (nls) at (\phils:-\Rder);
+\draw[-latex'] (-2.0,0) -- +(nls) node[above, at end] {$y$};
+
+\draw[draw=activecolor,very thick] (-1.25,0) -- (1.25,0) node[above, at end] 
+{$\sfcontour$};
+\draw[draw=activecolor, very thick, dotted] (-1.25,0) -- (-1.75,0);
+\draw[draw=activecolor, very thick, dotted] (+1.25,0) -- (+1.75,0);
+
+\node[label={-90:$\sfxsec^*$}] (ls) at (0,0) {};
+\fill[black] (ls) circle (0.05);
+
+%% sound field
+\node[circle, fill=black!50,inner sep=2pt] (source) at (\phips:\Rps) {};
+% draw "sound waves"
+\foreach \Rwaves in {0.3, 0.6, 0.9}
+{
+  \draw[draw=black!50] ($(source)+(\phips+150:\Rwaves)$) arc 
+    (\phips+150:\phips+210:\Rwaves);
+}
+\draw[dashed] (0,0) -- (source);
+
+\coordinate (kP) at ($(source)+(\phips:-\Rvec)$);
+\node[below=5pt of kP, inner sep = 0, anchor=north east]
+  {$\hat{\sfkvec}_{\sfvirtualsource}(\sfxsec^*,0,\sfomega)$};
+\draw[-latex'] (source) -- (kP);
+
+%% point of evaluation
+\coordinate[circle, 
+  fill=black,
+  inner sep=1pt,
+  label={90:$\sfpos$}] (pos) at (\phips:-\R) {};
+\draw[dashed] (0,0) -- (pos.center);
+
+\coordinate (kG) at (\phips:-\Rvec);
+\node[above right=2pt of kG, inner sep = 0]
+  {$\hat{\sfkvec}_{\sfgreens}(\sfx-\sfxsec^*,y,\sfomega)$};
+\draw[-latex'] (0,0) -- (kG);
+%
+\end{tikzpicture}
+%
+\end{document}

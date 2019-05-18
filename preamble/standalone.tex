@@ -1,0 +1,56 @@
+%% FONTS
+\usepackage[osf,sc]{mathpazo}
+
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize\@xpt{14}\abovedisplayskip 
+  10\p@ \@plus2\p@ \@minus5\p@ \abovedisplayshortskip \z@ \@plus3\p@ 
+  \belowdisplayshortskip 6\p@ \@plus3\p@ \@minus3\p@ \belowdisplayskip 
+  \abovedisplayskip \let\@listi\@listI}
+\normalbaselineskip=14pt
+\normalsize
+\renewcommand\small{\@setfontsize\small\@ixpt{12}\abovedisplayskip 8.5\p@ 
+  \@plus3\p@ \@minus4\p@ \abovedisplayshortskip \z@ \@plus2\p@ 
+  \belowdisplayshortskip 4\p@ \@plus2\p@ \@minus2\p@ 
+  \def\@listi{\leftmargin\leftmargini \topsep 4\p@ \@plus2\p@ \@minus2\p@ 
+    \parsep 
+    2\p@ \@plus\p@ \@minus\p@ \itemsep \parsep}\belowdisplayskip 
+  \abovedisplayskip}
+\renewcommand\footnotesize{\@setfontsize\footnotesize\@viiipt{10}\abovedisplayskip
+  6\p@ \@plus2\p@ \@minus4\p@ \abovedisplayshortskip \z@ \@plus\p@ 
+  \belowdisplayshortskip 3\p@ \@plus\p@ \@minus2\p@ 
+  \def\@listi{\leftmargin\leftmargini \topsep 3\p@ \@plus\p@ \@minus\p@ \parsep 
+    2\p@ \@plus\p@ \@minus\p@ \itemsep \parsep}\belowdisplayskip 
+  \abovedisplayskip}
+\renewcommand\scriptsize{\@setfontsize\scriptsize\@viipt\@viiipt}
+\renewcommand\tiny{\@setfontsize\tiny\@vpt\@vipt}
+\renewcommand\large{\@setfontsize\large\@xipt{15}}
+\renewcommand\Large{\@setfontsize\Large\@xiipt{16}}
+\renewcommand\LARGE{\@setfontsize\LARGE\@xivpt{18}}
+\renewcommand\huge{\@setfontsize\huge\@xxpt{30}}
+\renewcommand\Huge{\@setfontsize\Huge{24}{36}}
+\makeatother
+
+%%
+\usepackage{soundfield}
+\newcommand{\ft}[0]{\footnotesize}
+\newcommand{\scs}[0]{\scriptsize}
+\newcommand{\sm}[0]{\small}
+\sfrenewsymbol{wc}{\frac{\sfomega}{\mathrm{c}}}
+
+%% COLORS
+\definecolor{activecolor}{RGB}{150, 150, 150}
+\definecolor{area}{RGB}{236, 236, 236}
+\definecolor{local}{RGB}{254, 204, 0}
+\definecolor{rostock-uni}{RGB}{0,74,153}
+
+%% LENGTHS
+\newlength{\dissfullwidth}
+\newlength{\disstextwidth}
+\newlength{\dissmarginwidth}
+\setlength{\dissfullwidth}{16.46 cm}
+\setlength{\disstextwidth}{10.7 cm}
+\setlength{\dissmarginwidth}{4.94 cm}
+
+%% TikZ
+\usepackage{tikz}%  TikZ for drawing sketches
+\input{../../preamble/tikz}%  for TikZ styles and functions

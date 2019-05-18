@@ -1,0 +1,132 @@
+% geometry for discrete convex SSD
+
+%*****************************************************************************
+% Copyright (c) 2019      Fiete Winter                                       *
+%                         Institut fuer Nachrichtentechnik                   *
+%                         Universitaet Rostock                               *
+%                         Richard-Wagner-Strasse 31, 18119 Rostock, Germany  *
+%                                                                            *
+% This file is part of the supplementary material for Fiete Winter's         *
+% PhD thesis                                                                 *
+%                                                                            *
+% You can redistribute the material and/or modify it  under the terms of the *
+% GNU  General  Public  License as published by the Free Software Foundation *
+% , either version 3 of the License,  or (at your option) any later version. *
+%                                                                            *
+% This Material is distributed in the hope that it will be useful, but       *
+% WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+% or FITNESS FOR A PARTICULAR PURPOSE.                                       *
+% See the GNU General Public License for more details.                       *
+%                                                                            *
+% You should  have received a copy of the GNU General Public License along   *
+% with this program. If not, see <http://www.gnu.org/licenses/>.             *
+%                                                                            *
+% http://github.com/fietew/phd-thesis                 fiete.winter@gmail.com *
+%*****************************************************************************
+
+\documentclass{standalone}
+
+\usepackage{import}
+\input{../../preamble/standalone}
+
+\begin{document}
+
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\Rvec}{2.0}
+
+\pgfmathsetmacro{\Rls}{5.0}
+\pgfmathsetmacro{\phils}{-90}
+
+\pgfmathsetmacro{\Ru}{\Rls-0.1}
+\pgfmathsetmacro{\Rdeltau}{\Rls+0.30}
+
+\pgfmathsetmacro{\phider}{0}
+\pgfmathsetmacro{\Rder}{2.5}
+
+\pgfmathsetmacro{\phips}{-45}
+\pgfmathsetmacro{\Rps}{2}
+
+\pgfmathsetmacro{\phi}{55}
+\pgfmathsetmacro{\R}{2.5}
+
+\draw[thick, draw=black] ($(-65:\Rls)+(0,\Rls)$) arc (-65:-110:\Rls);
+
+\draw[draw=black,-latex'] ($(-70:\Ru)+(0,\Rls)$) arc (-70:-65:\Ru)
+node[above, sloped, midway] {$u$};
+
+\draw[draw=black,|-|]($(-97:\Rdeltau)+(0,\Rls)$) arc 
+  (-97:-105:\Rdeltau) node[below, sloped, midway] {$\sfdelta_{\sfpossec}$};
+
+\foreach \phils in {-105, -97, -84, -79, -75, -72, -70}
+{
+  \node[loudspeaker,
+  fill=activecolor,
+  transform shape,
+  rotate=\phils-180,
+  anchor=cone] at ($(\phils:\Rls)+(0,\Rls)$)  {};
+}
+
+\node[loudspeaker,
+fill=activecolor,
+transform shape,
+rotate=90,
+anchor=cone,
+label={180:$\sfpossec^*$}] (ls) {};
+
+%% sound field
+\node[circle, fill=black!50,inner sep=2pt] (source) at (\phips:\Rps) {};
+% draw "sound waves"
+\foreach \Rwaves in {0.3, 0.6, 0.9}
+{
+  \draw[draw=black!50] ($(source)+(\phips+150:\Rwaves)$) arc 
+  (\phips+150:\phips+210:\Rwaves);
+}
+\draw[dashed] (0,0) -- (source);
+
+\coordinate[label={180:$\sfkvecnormS$}] 
+(kP) 
+at 
+(\phips:-\Rvec);
+\draw[-latex'] (0,0) -- (kP);
+
+\coordinate (derivative) at (\phider:\Rder);
+\coordinate (nls) at (\phils:-\Rder);
+
+\coordinate (kPu) at ($(derivative)!(kP)!(0,0)$);
+\coordinate (kPn) at ($(nls)!(kP)!(0,0)$);
+
+\draw[dashed] (kPu) -- (0,0);
+\draw[dashed] (kPu) -- (kP);
+\draw[dashed] (kPn) -- (kP) 
+node[above, midway] {$\sfknorm_{\sfvirtualsource,\sftangentsec}$};
+
+%% point of evaluation
+\coordinate[circle, 
+fill=black,
+inner sep=1pt,
+label={90:$\sfpos$}] (pos) at (\phi:\R) {};
+\draw[dashed] (0,0) -- (pos.center);
+
+\coordinate[label={0:$\sfkvecnormG$}] (kG) 
+at 
+(\phi:\Rvec);
+\draw[-latex'] (0,0) -- (kG);
+%
+\coordinate (kGu) at ($(derivative)!(kG)!(0,0)$);
+\coordinate (kGn) at ($(nls)!(kG)!(0,0)$);
+
+\draw[dashed] (kGu) -- (0,0);
+\draw[dashed] (kGu) -- (kG);
+\draw[dashed] (kGn) -- (kG)
+node[above, midway] {$\sfknorm_{\sfgreens,\sftangentsec}$};
+
+\coordinate[label={-90:$\sftangentsec$}] (derivative) at (\phider:\Rder);
+\draw[-latex'] (0,0) -- (derivative);
+
+\coordinate[label={90:$\sfnormalsec$}] (nls) at (0,\Rder);
+\draw[-latex'] (0,0) -- (nls);
+%
+\end{tikzpicture}
+%
+\end{document}
