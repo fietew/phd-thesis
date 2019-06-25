@@ -6,7 +6,7 @@ This repository contains supplementary material for the PhD thesis "Local Sound 
 
 ### LaTeX
 
-In addition to the packages available on [CTAN](https://ctan.org), you need
+The repository was tested with pdfTeX 3.14159265-2.6-1.40.19 (TeX Live 2018). For the output of ``\listfiles`` showing the used packages and files, see [here](listfiles.log). In addition to the packages available on [CTAN](https://ctan.org), you need
 * soundfield.sty [(repo)](https://github.com/fietew/soundfield)
 * audioicons.sty
 
@@ -28,7 +28,7 @@ texhash
 
 ### Gnuplot
 
-The repository was tested unter Gnuplot v5.0 patchlevel 3. You need the following Gnuplot extensions
+The repository was tested under Gnuplot v5.0 patchlevel 3. You need the following Gnuplot extensions
 
 * ColorBrewer color schemes for gnuplot [(doi)](https://doi.org/10.5281/zenodo.10282), [(repo)](https://github.com/aschn/gnuplot-colorbrewer)
 
