@@ -53,6 +53,7 @@ the ``./matlab`` directory to your MATLAB path. You need the following toolboxes
 
 * Sound Field Synthesis Toolbox v2.5.0 [(doi)](https://doi.org/10.5281/zenodo.2597212), [(repo)](https://github.com/sfstoolbox/sfs-matlab)
 * Two!Ears Auditory Model v1.5 [(doi)](https://doi.org/10.5281/zenodo.1458420), [(repo)](https://github.com/TWOEARS/TwoEars)
+* SOFA Matlab/Octave API v1.0 [(repo)](https://github.com/sofacoustics/API_MO)
 
 The path of the toolboxes should be added to your MATLAB path. For specific installation instructions please take a look at the
 listed websites.
