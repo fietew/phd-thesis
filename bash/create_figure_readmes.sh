@@ -56,14 +56,19 @@ find $1 -iname "fig*" -type d | sort -n | while read -r directory ; do
         printf "\nMatlab:\n\`\`\`Matlab\n>> ${mfilelocal%.m}\n\`\`\`\n" >> $directory/README.md
     done
     
-    # LaTeX files
+    # standalone LaTeX files
     find $directory -iname "fig*.tex" -type f | sort -n | while read -r texfile ; do
         texfilelocal=`basename $texfile`
         echo "Found $texfile, adding to README.md"
         firstline=`head -1 $texfile`
         firstline=${firstline#"% "}
         printf "\n$firstline\n" >> $directory/README.md
-        printf "\nBash:\n\`\`\`Bash\n$ pdflatex $texfilelocal\n\`\`\`\n" >> $directory/README.md
+        if grep -q '\documentclass' $texfile
+        then 
+           printf "\nBash:\n\`\`\`Bash\n$ pdflatex $texfilelocal\n\`\`\`\n" >> $directory/README.md
+        else
+           printf '\nThis is an embedded LaTeX file. Please include it into your own document together with\n\`\`\`LaTeX\n\\usepackage{algpseudocode}\n\`\`\`\n' >> $directory/README.md
+        fi
     done
 
     # Gnuplot files
