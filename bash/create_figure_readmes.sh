@@ -67,7 +67,7 @@ find $1 -iname "fig*" -type d | sort -n | while read -r directory ; do
         then 
            printf "\nBash:\n\`\`\`Bash\n$ pdflatex $texfilelocal\n\`\`\`\n" >> $directory/README.md
         else
-           printf '\nThis is an embedded LaTeX file. Please include it into your own document together with\n\`\`\`LaTeX\n\\usepackage{algpseudocode}\n\`\`\`\n' >> $directory/README.md
+           printf '\nThis is an embedded LaTeX file. Please include it into your own document together with\n```LaTeX\n\\usepackage{algpseudocode}\n```\n' >> $directory/README.md
         fi
     done
 

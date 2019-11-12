@@ -1,7 +1,7 @@
 
-egin{algorithmic}[1]
+Algorithm to min. and max. tangential component of the local wavenumber vector 
 
-Bash:
-```Bash
-$ pdflatex fig.tex
+This is an embedded LaTeX file. Please include it into your own document together with
+```LaTeX
+\usepackage{algpseudocode}
 ```
